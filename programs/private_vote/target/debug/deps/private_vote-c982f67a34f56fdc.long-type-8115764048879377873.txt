@@ -1,0 +1,1 @@
+anchor_lang::prelude::Account<'_, instructions::vote::Vote<'_>>

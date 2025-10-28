@@ -1,0 +1,1 @@
+instructions::vote::Vote<'_>: anchor_lang::AccountDeserialize
