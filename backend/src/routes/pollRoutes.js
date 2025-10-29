@@ -191,6 +191,43 @@ router.get('/wallet',
   pollController.getGovernmentWalletInfo
 );
 
+// Get Solana wallet balance
+router.get('/wallet/balance',
+  apiKeyMiddleware,
+  pollController.getWalletBalance
+);
+
+// Request airdrop (devnet only)
+router.post('/wallet/airdrop',
+  apiKeyMiddleware,
+  [
+    body('lamports')
+      .optional()
+      .isInt({ min: 1000000, max: 2000000000 })
+      .withMessage('Lamports must be between 1M and 2B')
+  ],
+  handleValidationErrors,
+  pollController.requestAirdrop
+);
+
+// Get transaction status
+router.get('/transaction/:signature',
+  apiKeyMiddleware,
+  [
+    param('signature')
+      .isLength({ min: 80, max: 100 })
+      .withMessage('Invalid transaction signature format')
+  ],
+  handleValidationErrors,
+  pollController.getTransactionStatus
+);
+
+// Get Solana wallet info
+router.get('/solana/wallet',
+  apiKeyMiddleware,
+  pollController.getSolanaWalletInfo
+);
+
 // Health check route (no API key required)
 router.get('/health',
   pollController.healthCheck

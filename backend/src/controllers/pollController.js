@@ -1,6 +1,7 @@
 const pollService = require('../services/pollService');
 const SecurityUtils = require('../utils/security');
 const logger = require('../utils/logger');
+const solanaTransactionService = require('../services/solanaTransactionService');
 
 class PollController {
   // Create a new poll
@@ -281,6 +282,81 @@ class PollController {
       res.status(500).json({
         success: false,
         status: 'unhealthy',
+        error: error.message
+      });
+    }
+  }
+
+  // Get Solana wallet balance
+  async getWalletBalance(req, res) {
+    try {
+      const balanceInfo = await solanaTransactionService.checkWalletBalance();
+      res.json({
+        success: true,
+        ...balanceInfo
+      });
+    } catch (error) {
+      logger.error('Get wallet balance error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  // Request airdrop (devnet only)
+  async requestAirdrop(req, res) {
+    try {
+      const { lamports } = req.body;
+      const result = await solanaTransactionService.requestAirdrop(lamports);
+      res.json(result);
+    } catch (error) {
+      logger.error('Request airdrop error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  // Get transaction status
+  async getTransactionStatus(req, res) {
+    try {
+      const { signature } = req.params;
+      
+      if (!signature) {
+        return res.status(400).json({
+          success: false,
+          error: 'Transaction signature is required'
+        });
+      }
+
+      const status = await solanaTransactionService.getTransactionStatus(signature);
+      res.json({
+        success: true,
+        ...status
+      });
+    } catch (error) {
+      logger.error('Get transaction status error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  // Get Solana wallet info
+  async getSolanaWalletInfo(req, res) {
+    try {
+      const walletInfo = await solanaTransactionService.getWalletInfo();
+      res.json({
+        success: true,
+        wallet: walletInfo
+      });
+    } catch (error) {
+      logger.error('Get Solana wallet info error:', error);
+      res.status(500).json({
+        success: false,
         error: error.message
       });
     }

@@ -2,6 +2,7 @@ const { Connection, PublicKey, Transaction, SystemProgram } = require('@solana/w
 const solanaConfig = require('../config/solana');
 const logger = require('../utils/logger');
 const SecurityUtils = require('../utils/security');
+const solanaTransactionService = require('./solanaTransactionService');
 
 class PollService {
   constructor() {
@@ -41,11 +42,37 @@ class PollService {
       
       logger.info(`Poll created: ${pollId} by ${pollData.creator}`);
       
-      return {
-        success: true,
-        pollId: poll.id,
-        poll: this.sanitizePollForResponse(poll)
-      };
+      // Submit poll creation to Solana blockchain
+      try {
+        const transaction = await solanaTransactionService.createPollTransaction(
+          pollData.creator,
+          pollData
+        );
+        
+        const txResult = await solanaTransactionService.signAndSubmitTransaction(transaction);
+        
+        logger.info(`Poll creation transaction submitted to Solana: ${txResult.signature}`);
+        
+        return {
+          success: true,
+          pollId: poll.id,
+          poll: this.sanitizePollForResponse(poll),
+          transactionSignature: txResult.signature,
+          blockchainConfirmed: true
+        };
+        
+      } catch (txError) {
+        logger.error('Error submitting poll creation to Solana:', txError);
+        
+        // Still return success for the poll creation, but note the blockchain error
+        return {
+          success: true,
+          pollId: poll.id,
+          poll: this.sanitizePollForResponse(poll),
+          error: txError.message,
+          blockchainConfirmed: false
+        };
+      }
 
     } catch (error) {
       logger.error('Error creating poll:', error);
@@ -92,10 +119,36 @@ class PollService {
 
       logger.info(`Vote submitted: Poll ${voteData.pollId}, Option ${voteData.optionIndex}, Voter ${voteData.voterAddress}`);
 
-      return {
-        success: true,
-        message: 'Vote submitted successfully'
-      };
+      // Submit vote to Solana blockchain
+      try {
+        const transaction = await solanaTransactionService.createVoteTransaction(
+          voteData.voterAddress,
+          voteData.pollId,
+          voteData.optionIndex
+        );
+        
+        const txResult = await solanaTransactionService.signAndSubmitTransaction(transaction);
+        
+        logger.info(`Vote transaction submitted to Solana: ${txResult.signature}`);
+        
+        return {
+          success: true,
+          message: 'Vote submitted successfully',
+          transactionSignature: txResult.signature,
+          blockchainConfirmed: true
+        };
+        
+      } catch (txError) {
+        logger.error('Error submitting vote to Solana:', txError);
+        
+        // Still return success for the vote, but note the blockchain error
+        return {
+          success: true,
+          message: 'Vote recorded locally, but blockchain submission failed',
+          error: txError.message,
+          blockchainConfirmed: false
+        };
+      }
 
     } catch (error) {
       logger.error('Error submitting vote:', error);
