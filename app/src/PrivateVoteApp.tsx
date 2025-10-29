@@ -354,71 +354,45 @@ function PrivateVoteApp() {
             >
               Exit Demo
             </button>
+          </div>
         </div>
-        )}
+      )}
 
-        {/* Wallet Connection Prompt - Show when not connected and not in demo mode */}
-        {!connected && !isDemoMode && (
-          <div className="container">
-            <div className="card" style={{ textAlign: 'center' }}>
-              <h3>🔗 Connect Your Wallet</h3>
-              <p>
-                Connect your Solana wallet to create polls, vote, and manage your voting sessions.
-              </p>
-              <button
-                onClick={connect}
-                className="btn-primary"
-              >
-                Connect Wallet
-              </button>
-      </div>
-        )}
+      {/* Wallet Connection Prompt - Show when not connected and not in demo mode */}
+      {!connected && !isDemoMode && (
+        <div className="container">
+          <div className="card" style={{ textAlign: 'center' }}>
+            <h3>🔗 Connect Your Wallet</h3>
+            <p>
+              Connect your Solana wallet to create polls, vote, and manage your voting sessions.
+            </p>
+            <button
+              onClick={connect}
+              className="btn-primary"
+              style={{ background: "#1976d2", color: "#fff", borderRadius: "6px", padding: "12px 24px", border: "none", fontWeight: "bold" }}
+            >
+              Connect Wallet
+            </button>
+          </div>
+        </div>
+      )}
 
-        {/* Try Demo Button - Show when no polls and not in demo mode */}
+      {/* Try Demo Button - Show when no polls and not in demo mode */}
       {!isDemoMode && createdPolls.length === 0 && !connected && (
-        <div style={{
-          textAlign: 'center',
-          padding: '40px 20px',
-          background: 'var(--bg-card)',
-          marginBottom: '32px',
-          border: '1px solid var(--border-light)',
-          borderRadius: '8px',
-          boxShadow: 'var(--shadow-subtle)'
-        }}>
-          <h3 style={{
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'var(--text-primary)',
-            margin: '0 0 8px 0'
-          }}>
-            Try Private Vote
-          </h3>
-          <p style={{
-            fontSize: '14px',
-            color: 'var(--text-muted)',
-            margin: '0 0 20px 0',
-            lineHeight: '1.4'
-          }}>
-            Experience the interface with a demo poll. No wallet connection required.
-          </p>
-          <button
-            onClick={createDemoPoll}
-            style={{
-              padding: '12px 24px',
-              background: 'var(--bg-button)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-medium)',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              borderRadius: '6px',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = 'var(--accent-primary)'}
-            onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = 'var(--bg-button)'}
-          >
-            🎮 Try Demo
-          </button>
+        <div className="container">
+          <div className="card" style={{ textAlign: 'center' }}>
+            <h3>Try Private Vote</h3>
+            <p>
+              Experience the interface with a demo poll. No wallet connection required.
+            </p>
+            <button
+              onClick={createDemoPoll}
+              className="btn-primary"
+              style={{ background: "#1976d2", color: "#fff", borderRadius: "6px", padding: "12px 24px", border: "none", fontWeight: "bold" }}
+            >
+              🎮 Try Demo
+            </button>
+          </div>
         </div>
       )}
 
