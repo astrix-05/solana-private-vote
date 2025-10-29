@@ -259,40 +259,22 @@ function PrivateVoteApp() {
       />
 
       {/* Main Content */}
-      <div style={{
-        padding: isMobile ? '16px' : '24px',
-        maxWidth: isMobile ? '100%' : '800px',
-        margin: '0 auto'
-    }}>
-      {/* Header */}
-        <div style={{ 
-          textAlign: 'center', 
-          marginBottom: '32px',
-          padding: '24px 0'
-        }}>
-          <h1 style={{ 
-            fontSize: isMobile ? '28px' : '32px',
-            fontWeight: '700',
-            color: 'var(--text-main)',
-            margin: '0 0 8px 0',
-            lineHeight: '1.2'
-          }}>
-            Private Vote
-        </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '16px', margin: 0, lineHeight: '1.4' }}>
-            Secure voting on Solana
-          </p>
+      <div className="container">
+        {/* Header */}
+        <div className="card" style={{ textAlign: 'center' }}>
+          <h1>Private Vote</h1>
+          <p>Secure voting on Solana</p>
           
           {/* Wallet Status */}
           {connected && publicKey && (
             <div style={{
-              marginTop: '12px',
+              marginTop: '16px',
               display: 'inline-block',
-              fontSize: '14px',
+              fontSize: '0.875rem',
               color: 'var(--text-muted)',
-              padding: '6px 12px',
-              background: 'var(--bg-card)',
-              borderRadius: '6px',
+              padding: '8px 16px',
+              background: 'var(--bg-main)',
+              borderRadius: 'var(--radius-card)',
               border: '1px solid var(--border-grey)'
             }}>
               Connected: {publicKey.slice(0, 4)}...{publicKey.slice(-4)}
@@ -301,20 +283,16 @@ function PrivateVoteApp() {
         </div>
 
         {/* Wallet Funding Status */}
-        <div style={{ marginBottom: '24px' }}>
+        <div className="card">
           <WalletFundingStatus showDetails={true} />
         </div>
           
-          {/* Loading Indicator */}
-          {loading && (
-            <div style={{
-              marginTop: '8px',
-              fontSize: '12px',
-              color: '#666'
-            }}>
-              Processing...
-            </div>
-          )}
+        {/* Loading Indicator */}
+        {loading && (
+          <div className="card" style={{ textAlign: 'center' }}>
+            <p>Processing...</p>
+          </div>
+        )}
       </div>
 
         {/* Wallet Button - Desktop only */}
@@ -342,110 +320,57 @@ function PrivateVoteApp() {
 
       {/* Success Message */}
       {message && message !== 'Welcome to Private Vote!' && !message.startsWith('Create a new poll') && (
-        <div style={{
-          margin: '0 0 24px 0',
-          padding: '12px 16px',
-          background: 'var(--bg-card)',
-          color: 'var(--text-primary)',
-          fontSize: '14px',
-          border: '1px solid var(--border-light)',
-          borderRadius: '8px',
-          boxShadow: 'var(--shadow-subtle)'
-        }}>
-          {message}
+        <div className="container">
+          <div className="card" style={{ textAlign: 'center' }}>
+            <p>{message}</p>
+          </div>
         </div>
       )}
 
       {/* Demo Mode Banner */}
       {isDemoMode && (
-      <div style={{ 
-          background: 'var(--bg-section)',
-          padding: '16px',
-          marginBottom: '24px',
-        display: 'flex', 
-          alignItems: 'center',
-          gap: '8px',
-          border: '1px solid var(--border-light)',
-          borderRadius: '8px',
-          boxShadow: 'var(--shadow-subtle)'
-        }}>
-          <span style={{ fontSize: '16px', color: 'var(--accent-light)' }}>🎮</span>
-          <div>
-            <strong style={{ color: 'var(--text-primary)', fontSize: '14px' }}>Demo Mode</strong>
-            <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '2px 0 0 0' }}>
-              You're viewing a demonstration with mock data. Connect your wallet to create real polls.
-            </p>
-          </div>
-        <button
-          onClick={() => {
-              setIsDemoMode(false);
-              setCreatedPolls([]);
-              setMessage('Demo mode disabled. Connect your wallet to create real polls.');
-          }}
-          style={{
-              marginLeft: 'auto',
-              padding: '6px 12px',
-              background: 'var(--bg-button)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-medium)',
-              borderRadius: '6px',
-            cursor: 'pointer',
-              fontSize: '12px',
-              transition: 'all 0.2s ease'
-          }}
-          onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = 'var(--accent-primary)'}
-          onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = 'var(--bg-button)'}
-        >
-            Exit Demo
-        </button>
+        <div className="container">
+          <div className="card" style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            gap: '12px',
+            background: '#e3f2fd'
+          }}>
+            <span style={{ fontSize: '20px' }}>🎮</span>
+            <div>
+              <strong style={{ color: 'var(--button-primary)', fontSize: '1rem' }}>Demo Mode</strong>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: '4px 0 0 0' }}>
+                You're viewing a demonstration with mock data. Connect your wallet to create real polls.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setIsDemoMode(false);
+                setCreatedPolls([]);
+                setMessage('Demo mode disabled. Connect your wallet to create real polls.');
+              }}
+              className="btn-secondary"
+              style={{ marginLeft: 'auto' }}
+            >
+              Exit Demo
+            </button>
         </div>
         )}
 
         {/* Wallet Connection Prompt - Show when not connected and not in demo mode */}
         {!connected && !isDemoMode && (
-          <div style={{
-            background: 'var(--bg-card)',
-            padding: '20px',
-            marginBottom: '24px',
-            textAlign: 'center',
-            border: '1px solid var(--border-light)',
-            borderRadius: '8px',
-            boxShadow: 'var(--shadow-subtle)'
-          }}>
-            <h3 style={{
-            fontSize: '16px',
-            fontWeight: '600',
-              color: 'var(--text-primary)',
-              margin: '0 0 8px 0'
-            }}>
-              🔗 Connect Your Wallet
-            </h3>
-            <p style={{
-              fontSize: '14px',
-              color: 'var(--text-muted)',
-              margin: '0 0 12px 0',
-              lineHeight: '1.4'
-            }}>
-              Connect your Solana wallet to create polls, vote, and manage your voting sessions.
-            </p>
-        <button
-              onClick={connect}
-          style={{
-                padding: '10px 20px',
-                background: 'var(--bg-button)',
-                color: 'var(--text-primary)',
-            border: '1px solid var(--border-medium)',
-                borderRadius: '6px',
-            cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                transition: 'all 0.2s ease'
-          }}
-          onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = 'var(--accent-primary)'}
-          onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = 'var(--bg-button)'}
-        >
-              Connect Wallet
-        </button>
+          <div className="container">
+            <div className="card" style={{ textAlign: 'center' }}>
+              <h3>🔗 Connect Your Wallet</h3>
+              <p>
+                Connect your Solana wallet to create polls, vote, and manage your voting sessions.
+              </p>
+              <button
+                onClick={connect}
+                className="btn-primary"
+              >
+                Connect Wallet
+              </button>
       </div>
         )}
 
@@ -498,42 +423,42 @@ function PrivateVoteApp() {
       )}
 
       {/* Content Area */}
-      {viewMode === 'create' ? (
-        <CreatePollFixed 
-          onSubmit={handleCreatePoll} 
-          loading={loading}
-          creatorPublicKey={publicKey?.toString()}
-          isDemoMode={isDemoMode}
-        />
-      ) : viewMode === 'vote' ? (
-        <VotePollFixed 
-          polls={activePollsForVoting} 
-          onVote={handleVote} 
-          isDemoMode={isDemoMode}
-          voterPublicKey={publicKey?.toString()}
-        />
-      ) : viewMode === 'manage' && createdPolls.length > 0 ? (
-        <ManagePollsFixed 
-          polls={createdPolls.filter(poll => poll.creator === publicKey)} 
-          onClosePoll={handleClosePoll} 
-        />
-      ) : viewMode === 'results' && createdPolls.length > 0 ? (
-        <ResultsFixed polls={createdPolls} isPollExpired={isPollExpired} />
-      ) : (
-        <div style={{
-          textAlign: 'center',
-          padding: '64px 24px',
-          color: 'var(--text-muted)',
-          background: 'var(--bg-card)',
-          borderRadius: 'var(--radius-card)',
-          border: '1px solid var(--border-grey)',
-          boxShadow: 'var(--shadow-card)'
-        }}>
-          <p style={{ fontSize: '16px', margin: 0, lineHeight: '1.5' }}>
-            No polls created yet. Click "Create" to get started.
-          </p>
-        </div>
-      )}
+      <div className="container">
+        {viewMode === 'create' ? (
+          <div className="card">
+            <CreatePollFixed 
+              onSubmit={handleCreatePoll} 
+              loading={loading}
+              creatorPublicKey={publicKey?.toString()}
+              isDemoMode={isDemoMode}
+            />
+          </div>
+        ) : viewMode === 'vote' ? (
+          <div className="card">
+            <VotePollFixed 
+              polls={activePollsForVoting} 
+              onVote={handleVote} 
+              isDemoMode={isDemoMode}
+              voterPublicKey={publicKey?.toString()}
+            />
+          </div>
+        ) : viewMode === 'manage' && createdPolls.length > 0 ? (
+          <div className="card">
+            <ManagePollsFixed 
+              polls={createdPolls.filter(poll => poll.creator === publicKey)} 
+              onClosePoll={handleClosePoll} 
+            />
+          </div>
+        ) : viewMode === 'results' && createdPolls.length > 0 ? (
+          <div className="card">
+            <ResultsFixed polls={createdPolls} isPollExpired={isPollExpired} />
+          </div>
+        ) : (
+          <div className="card" style={{ textAlign: 'center' }}>
+            <p>No polls created yet. Click "Create" to get started.</p>
+          </div>
+        )}
+      </div>
 
       {/* Share Poll Modal */}
       {showShareModal && sharePollId && (

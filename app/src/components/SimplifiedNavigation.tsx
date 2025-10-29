@@ -56,7 +56,7 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
               border: currentView === item.id ? '1px solid var(--button-border)' : '1px solid transparent',
               cursor: 'pointer',
               fontSize: '24px',
-              color: currentView === item.id ? 'var(--text-main)' : 'var(--text-muted)',
+              color: currentView === item.id ? 'var(--icon-active)' : 'var(--icon-grey)',
               position: 'relative',
               minHeight: '60px',
               minWidth: '60px',
@@ -123,7 +123,7 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
               border: currentView === item.id ? '1px solid var(--button-border)' : '1px solid transparent',
               cursor: 'pointer',
               fontSize: '20px',
-              color: currentView === item.id ? 'var(--text-main)' : 'var(--text-muted)',
+              color: currentView === item.id ? 'var(--icon-active)' : 'var(--icon-grey)',
               borderRadius: '8px',
               transition: 'all 0.2s ease'
             }}
