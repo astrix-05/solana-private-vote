@@ -9,6 +9,7 @@ const pollRoutes = require('./routes/pollRoutes');
 const { corsOptions, requestLogger, securityHeaders, sanitizeInput } = require('./middleware/security');
 const logger = require('./utils/logger');
 const solanaConfig = require('./config/solana');
+const walletFundingService = require('./services/walletFundingService');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -130,11 +131,13 @@ app.use((error, req, res, next) => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
+  walletFundingService.stopMonitoring();
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
+  walletFundingService.stopMonitoring();
   process.exit(0);
 });
 
@@ -148,6 +151,10 @@ const startServer = async () => {
     // Check wallet balance
     await solanaConfig.fundWalletIfNeeded();
     
+    // Start wallet funding monitoring
+    walletFundingService.startMonitoring();
+    logger.info('💰 Wallet funding monitoring started');
+
     // Start listening
     app.listen(PORT, () => {
       logger.info(`🚀 Private Vote Relayer Server running on port ${PORT}`);

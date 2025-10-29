@@ -2,6 +2,7 @@ const pollService = require('../services/pollService');
 const SecurityUtils = require('../utils/security');
 const logger = require('../utils/logger');
 const solanaTransactionService = require('../services/solanaTransactionService');
+const walletFundingService = require('../services/walletFundingService');
 
 class PollController {
   // Create a new poll
@@ -355,6 +356,104 @@ class PollController {
       });
     } catch (error) {
       logger.error('Get Solana wallet info error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  // Get wallet funding status
+  async getWalletFundingStatus(req, res) {
+    try {
+      const status = await walletFundingService.getFundingStatus();
+      res.json({
+        success: true,
+        funding: status
+      });
+    } catch (error) {
+      logger.error('Get wallet funding status error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  // Force fund wallet
+  async forceFundWallet(req, res) {
+    try {
+      const success = await walletFundingService.forceFundWallet();
+      if (success) {
+        res.json({
+          success: true,
+          message: 'Wallet funded successfully'
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to fund wallet'
+        });
+      }
+    } catch (error) {
+      logger.error('Force fund wallet error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  // Update funding parameters
+  async updateFundingParameters(req, res) {
+    try {
+      const { minimumBalance, targetBalance, airdropAmount, checkInterval } = req.body;
+      
+      walletFundingService.updateParameters({
+        minimumBalance,
+        targetBalance,
+        airdropAmount,
+        checkInterval
+      });
+
+      res.json({
+        success: true,
+        message: 'Funding parameters updated successfully'
+      });
+    } catch (error) {
+      logger.error('Update funding parameters error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
+  // Start/stop funding monitoring
+  async toggleFundingMonitoring(req, res) {
+    try {
+      const { action } = req.body; // 'start' or 'stop'
+      
+      if (action === 'start') {
+        walletFundingService.startMonitoring();
+        res.json({
+          success: true,
+          message: 'Funding monitoring started'
+        });
+      } else if (action === 'stop') {
+        walletFundingService.stopMonitoring();
+        res.json({
+          success: true,
+          message: 'Funding monitoring stopped'
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: 'Invalid action. Use "start" or "stop"'
+        });
+      }
+    } catch (error) {
+      logger.error('Toggle funding monitoring error:', error);
       res.status(500).json({
         success: false,
         error: error.message

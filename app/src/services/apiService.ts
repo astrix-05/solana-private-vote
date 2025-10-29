@@ -31,6 +31,7 @@ export interface CreatePollResponse {
   transactionSignature?: string;
   blockchainConfirmed?: boolean;
   error?: string;
+  message?: string;
 }
 
 export interface Poll {
@@ -178,6 +179,40 @@ class ApiService {
   async healthCheck(): Promise<{ success: boolean; status: string; timestamp: string; uptime: number; governmentWallet: any; version: string }> {
     return this.makeRequest<{ success: boolean; status: string; timestamp: string; uptime: number; governmentWallet: any; version: string }>('/health');
   }
+
+  // Get wallet funding status
+  async getWalletFundingStatus(): Promise<{ success: boolean; funding: any }> {
+    return this.makeRequest<{ success: boolean; funding: any }>('/wallet/funding');
+  }
+
+  // Force fund wallet
+  async forceFundWallet(): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest<{ success: boolean; message: string }>('/wallet/fund', {
+      method: 'POST'
+    });
+  }
+
+  // Update funding parameters
+  async updateFundingParameters(params: {
+    minimumBalance?: number;
+    targetBalance?: number;
+    airdropAmount?: number;
+    checkInterval?: number;
+  }): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest<{ success: boolean; message: string }>('/wallet/funding/parameters', {
+      method: 'PUT',
+      body: JSON.stringify(params)
+    });
+  }
+
+  // Toggle funding monitoring
+  async toggleFundingMonitoring(action: 'start' | 'stop'): Promise<{ success: boolean; message: string }> {
+    return this.makeRequest<{ success: boolean; message: string }>('/wallet/funding/monitoring', {
+      method: 'POST',
+      body: JSON.stringify({ action })
+    });
+  }
 }
 
-export default new ApiService();
+const apiService = new ApiService();
+export default apiService;

@@ -228,6 +228,55 @@ router.get('/solana/wallet',
   pollController.getSolanaWalletInfo
 );
 
+// Get wallet funding status
+router.get('/wallet/funding',
+  apiKeyMiddleware,
+  pollController.getWalletFundingStatus
+);
+
+// Force fund wallet
+router.post('/wallet/fund',
+  apiKeyMiddleware,
+  pollController.forceFundWallet
+);
+
+// Update funding parameters
+router.put('/wallet/funding/parameters',
+  apiKeyMiddleware,
+  [
+    body('minimumBalance')
+      .optional()
+      .isFloat({ min: 0.001, max: 10 })
+      .withMessage('Minimum balance must be between 0.001 and 10 SOL'),
+    body('targetBalance')
+      .optional()
+      .isFloat({ min: 0.01, max: 50 })
+      .withMessage('Target balance must be between 0.01 and 50 SOL'),
+    body('airdropAmount')
+      .optional()
+      .isFloat({ min: 0.1, max: 10 })
+      .withMessage('Airdrop amount must be between 0.1 and 10 SOL'),
+    body('checkInterval')
+      .optional()
+      .isInt({ min: 10000, max: 300000 })
+      .withMessage('Check interval must be between 10 and 300 seconds')
+  ],
+  handleValidationErrors,
+  pollController.updateFundingParameters
+);
+
+// Toggle funding monitoring
+router.post('/wallet/funding/monitoring',
+  apiKeyMiddleware,
+  [
+    body('action')
+      .isIn(['start', 'stop'])
+      .withMessage('Action must be "start" or "stop"')
+  ],
+  handleValidationErrors,
+  pollController.toggleFundingMonitoring
+);
+
 // Health check route (no API key required)
 router.get('/health',
   pollController.healthCheck

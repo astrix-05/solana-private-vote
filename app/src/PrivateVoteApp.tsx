@@ -5,6 +5,7 @@ import ManagePollsFixed from './components/ManagePollsFixed';
 import ResultsFixed from './components/ResultsFixed';
 import SharePoll from './components/SharePoll';
 import SimplifiedNavigation from './components/SimplifiedNavigation';
+import WalletFundingStatus from './components/WalletFundingStatus';
 import { useWallet, WalletButton } from './contexts/WalletProvider';
 import { useIsMobile } from './hooks/useIsMobile';
 
@@ -291,6 +292,12 @@ function PrivateVoteApp() {
               Connected: {publicKey.slice(0, 4)}...{publicKey.slice(-4)}
             </div>
           )}
+        </div>
+
+        {/* Wallet Funding Status */}
+        <div style={{ marginBottom: '24px' }}>
+          <WalletFundingStatus showDetails={true} />
+        </div>
           
           {/* Loading Indicator */}
           {loading && (
@@ -517,12 +524,11 @@ function PrivateVoteApp() {
           </p>
         </div>
       )}
-      </div>
 
       {/* Share Poll Modal */}
       {showShareModal && sharePollId && (
         <SharePoll
-          pollId={sharePollId}
+          pollId={sharePollId || 0}
           pollQuestion={createdPolls.find(p => p.id === sharePollId)?.question || ''}
           onClose={() => {
             setShowShareModal(false);
