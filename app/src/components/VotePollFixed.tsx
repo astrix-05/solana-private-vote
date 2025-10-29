@@ -68,7 +68,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
         };
 
         const response = await apiService.vote(voteRequest);
-        
+
         if (response.success) {
           // Update local state
           onVote(pollId, selectedOption);
@@ -114,32 +114,44 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
   if (polls.length === 0) {
     return (
       <div style={{
-        maxWidth: '600px',
-        margin: '40px auto',
-        padding: '40px',
+        textAlign: 'center',
+        padding: '60px 20px',
         background: 'var(--bg-card)',
-        border: '1px solid var(--border-light)',
-        borderRadius: '8px',
-        boxShadow: 'var(--shadow-subtle)',
-        textAlign: 'center'
+        borderRadius: 'var(--radius)',
+        border: '1px solid var(--border-grey)',
+        boxShadow: 'var(--shadow)'
       }}>
-        <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
-          No active polls available. Create a poll first!
+        <div style={{ fontSize: '64px', marginBottom: '24px' }}>🗳️</div>
+        <h3 style={{ 
+          fontSize: '24px', 
+          color: 'var(--text-main)', 
+          margin: '0 0 16px 0',
+          fontWeight: '700'
+        }}>
+          No Active Polls
+        </h3>
+        <p style={{ 
+          fontSize: '16px', 
+          color: 'var(--text-muted)',
+          margin: '0'
+        }}>
+          Create a poll to get started with voting!
         </p>
       </div>
     );
   }
 
   return (
-    <div style={{
-      maxWidth: '800px',
-      margin: '0 auto',
-      padding: '20px'
-    }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
       <h2 style={{
-        fontSize: '28px',
-        marginBottom: '30px',
-        color: 'var(--text-primary)'
+        fontSize: '2.5rem',
+        fontWeight: '800',
+        margin: '0 0 32px 0',
+        textAlign: 'center',
+        background: 'var(--button-gradient)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
       }}>
         Active Polls - Cast Your Vote
       </h2>
@@ -149,7 +161,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
         <VoterStats voterAddress={voterPublicKey} showDetails={true} />
       )}
 
-      <div style={{ display: 'grid', gap: '25px' }}>
+      <div style={{ display: 'grid', gap: '32px' }}>
         {polls.map((poll) => {
           const hasVoted = votedPolls[poll.id] !== undefined;
           const selectedOption = selectedOptions[poll.id];
@@ -159,215 +171,220 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
           return (
             <div
               key={poll.id}
+              className="card"
               style={{
-                background: 'var(--bg-card)',
-        border: '1px solid var(--border-light)',
-        borderRadius: '8px',
-        boxShadow: 'var(--shadow-subtle)',
-                padding: '24px',
-                marginBottom: '16px'
+                background: 'linear-gradient(135deg, var(--bg-card) 0%, #1a1a2e 100%)',
+                border: '1px solid var(--border-grey)',
+                position: 'relative',
+                overflow: 'hidden'
               }}
             >
-              {/* Poll Question */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              {/* Poll Header */}
+              <div style={{ marginBottom: '24px' }}>
                 <h3 style={{
-                  fontSize: '22px',
-                  color: 'var(--text-primary)',
-                  fontWeight: '600',
-                  margin: 0,
-                  flex: 1
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  color: 'var(--text-main)',
+                  margin: '0 0 12px 0',
+                  lineHeight: '1.4'
                 }}>
                   {poll.question}
                 </h3>
-                {poll.isAnonymous && (
-                  <span style={{
-                    padding: '2px 8px',
-                    background: '#e3f2fd',
-                    color: '#1976d2',
-                    fontSize: '10px',
-                    fontWeight: '500'
-                  }}>
-                    Anonymous
-                  </span>
-                )}
-                {isDemoMode && (
-                  <span style={{
-                    padding: '2px 8px',
-                    background: '#fff3cd',
-                    color: '#856404',
-                    fontSize: '10px',
-                    fontWeight: '500'
-                  }}>
-                    Demo
-                  </span>
-                )}
+                
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px',
+                  flexWrap: 'wrap'
+                }}>
+                  {poll.expiryDate && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      color: 'var(--accent-blue)',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>
+                      <span>⏰</span>
+                      <CountdownTimer expiryDate={poll.expiryDate} />
+                    </div>
+                  )}
+                  
+                  {poll.isAnonymous && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      color: 'var(--accent-pink)',
+                      fontSize: '14px',
+                      fontWeight: '500'
+                    }}>
+                      <span>🔒</span>
+                      <span>Anonymous</span>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Countdown Timer */}
-              {poll.expiryDate && (
-                <div style={{ marginBottom: '20px' }}>
-                  <CountdownTimer expiryDate={poll.expiryDate} />
-                </div>
-              )}
-
-              {/* Options */}
-              <div style={{ marginBottom: '20px' }}>
+              {/* Poll Options */}
+              <div style={{ marginBottom: '24px' }}>
                 {poll.options.map((option, index) => (
-                  <div
-                    key={index}
-                    onClick={() => !hasVoted && handleOptionSelect(poll.id, index)}
-                    style={{
-                      padding: '14px',
-                      marginBottom: '10px',
-                      border: hasVoted && votedPolls[poll.id] === index
-                        ? '2px solid #4caf50'
-                        : selectedOption === index
-                        ? '2px solid #667eea'
-                        : '2px solid #e0e0e0',
+                  <div key={index} style={{ marginBottom: '12px' }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px',
+                      padding: '16px 20px',
+                      background: selectedOption === index ? 'var(--accent-blue)' : 'var(--btn-bg)',
+                      border: `2px solid ${selectedOption === index ? 'var(--accent-blue)' : 'var(--border-grey)'}`,
+                      borderRadius: 'var(--radius)',
                       cursor: hasVoted ? 'default' : 'pointer',
-                      background: hasVoted && votedPolls[poll.id] === index
-                        ? '#f1f8e9'
-                        : selectedOption === index
-                        ? '#f0f4ff'
-                        : '#fafafa'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div style={{
-                        width: '24px',
-                        height: '24px',
-                        border: hasVoted && votedPolls[poll.id] === index
-                          ? '4px solid #4caf50'
-                          : selectedOption === index
-                          ? '4px solid #667eea'
-                          : '2px solid #ccc',
-                        background: hasVoted && votedPolls[poll.id] === index
-                          ? '#4caf50'
-                          : selectedOption === index
-                          ? '#667eea'
-                          : 'transparent',
-                        marginRight: '12px',
-                        transition: 'all 0.2s'
-                      }} />
+                      transition: 'var(--transition)',
+                      position: 'relative',
+                      overflow: 'hidden'
+                    }}>
+                      <input
+                        type="radio"
+                        name={`poll-${poll.id}`}
+                        checked={selectedOption === index}
+                        onChange={() => !hasVoted && handleOptionSelect(poll.id, index)}
+                        disabled={hasVoted}
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          accentColor: 'var(--accent-blue)'
+                        }}
+                      />
                       <span style={{
                         fontSize: '16px',
-                        color: '#555'
+                        fontWeight: '500',
+                        color: selectedOption === index ? 'white' : 'var(--text-main)',
+                        flex: 1
                       }}>
                         {option}
                       </span>
                       {hasVoted && votedPolls[poll.id] === index && (
                         <span style={{
-                          marginLeft: 'auto',
-                          color: '#4caf50',
-                          fontWeight: '600',
-                          fontSize: '14px'
+                          color: 'var(--accent-green)',
+                          fontWeight: '700',
+                          fontSize: '18px'
                         }}>
                           ✓ Your Vote
                         </span>
                       )}
-                    </div>
+                    </label>
                   </div>
                 ))}
               </div>
 
-              {/* Submit Button */}
+              {/* Submit Button or Vote Confirmation */}
               {!hasVoted ? (
                 <button
                   onClick={() => handleSubmitVote(poll.id)}
                   disabled={selectedOption === undefined || selectedOption === null || votingState === 'voting'}
+                  className="btn-primary"
                   style={{
                     width: '100%',
-                    padding: '16px',
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    background: votingState === 'voting'
-                      ? '#ccc'
-                      : selectedOption !== null && selectedOption !== undefined
-                      ? '#667eea'
-                      : '#ccc',
-                    color: 'white',
-                    border: 'none',
+                    fontSize: '18px',
+                    padding: '20px',
+                    opacity: votingState === 'voting' ? 0.7 : 1,
                     cursor: votingState === 'voting' || (selectedOption === null || selectedOption === undefined)
                       ? 'not-allowed'
-                      : 'pointer',
-                    minHeight: '48px',
-                    opacity: votingState === 'voting' ? 0.7 : 1
+                      : 'pointer'
                   }}
                 >
-                  {votingState === 'voting'
-                    ? 'Submitting Vote...'
-                    : selectedOption !== null && selectedOption !== undefined
-                    ? 'Cast Your Vote'
-                    : 'Select an option first'}
+                  {votingState === 'voting' ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                      <div className="loading-dots">
+                        <div className="loading-dot" />
+                        <div className="loading-dot" />
+                        <div className="loading-dot" />
+                      </div>
+                      Submitting Vote...
+                    </div>
+                  ) : selectedOption !== null && selectedOption !== undefined ? (
+                    '🗳️ Cast Your Vote'
+                  ) : (
+                    'Select an option first'
+                  )}
                 </button>
               ) : (
                 <div>
-                  <div style={{
-                    padding: '12px',
-                    background: voteConfirmation?.success ? '#e8f5e9' : '#ffebee',
-                    color: voteConfirmation?.success ? '#2e7d32' : '#c62828',
+                  <div className="status-success" style={{
                     textAlign: 'center',
-                    fontSize: '16px',
+                    fontSize: '18px',
                     fontWeight: '600',
-                    marginBottom: '8px'
+                    marginBottom: '16px'
                   }}>
-                    ✓ You voted for: "{poll.options[votedPolls[poll.id]]}"
+                    ✅ You voted for: "{poll.options[votedPolls[poll.id]]}"
                   </div>
-                  
+
                   {/* Vote Confirmation Details */}
                   {voteConfirmation && (
                     <div style={{
-                      padding: '12px',
-                      background: 'var(--bg-section)',
-                      border: '1px solid var(--border-light)',
-                      borderRadius: '6px',
+                      padding: '20px',
+                      background: 'var(--btn-bg)',
+                      border: '1px solid var(--border-grey)',
+                      borderRadius: 'var(--radius)',
                       fontSize: '14px'
                     }}>
-                      <div style={{ marginBottom: '8px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                        Vote Confirmation:
+                      <div style={{ 
+                        marginBottom: '16px', 
+                        fontWeight: '700', 
+                        color: 'var(--text-main)',
+                        fontSize: '16px'
+                      }}>
+                        Vote Confirmation Details:
                       </div>
-                      <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
-                        Status: {voteConfirmation.success ? '✅ Success' : '❌ Failed'}
+                      
+                      <div style={{ 
+                        display: 'grid', 
+                        gap: '8px',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
+                      }}>
+                        <div style={{ color: 'var(--text-muted)' }}>
+                          <strong>Status:</strong> {voteConfirmation.success ? '✅ Success' : '❌ Failed'}
+                        </div>
+                        <div style={{ color: 'var(--text-muted)' }}>
+                          <strong>Message:</strong> {voteConfirmation.message}
+                        </div>
+                        {voteConfirmation.transactionSignature && (
+                          <div style={{ color: 'var(--text-muted)' }}>
+                            <strong>Transaction:</strong> {voteConfirmation.transactionSignature.slice(0, 8)}...{voteConfirmation.transactionSignature.slice(-8)}
+                          </div>
+                        )}
+                        <div style={{ color: 'var(--text-muted)' }}>
+                          <strong>Blockchain:</strong> {voteConfirmation.blockchainConfirmed ? '✅ Confirmed' : '⚠️ Local Only'}
+                        </div>
+                        {voteConfirmation.feePaidBy && (
+                          <div style={{ color: 'var(--text-muted)' }}>
+                            <strong>💰 Fee paid by:</strong> {voteConfirmation.feePaidBy}
+                          </div>
+                        )}
+                        {voteConfirmation.rateLimitInfo && (
+                          <div style={{ color: 'var(--text-muted)' }}>
+                            <strong>⏱️ Remaining votes:</strong> {voteConfirmation.rateLimitInfo.remainingVotes}
+                          </div>
+                        )}
+                        {voteConfirmation.governmentWallet && (
+                          <div style={{ color: 'var(--text-muted)' }}>
+                            <strong>🏛️ Government wallet:</strong> {voteConfirmation.governmentWallet.slice(0, 8)}...{voteConfirmation.governmentWallet.slice(-8)}
+                          </div>
+                        )}
+                        {voteConfirmation.demoMode && (
+                          <div style={{ 
+                            color: '#ff9800',
+                            fontWeight: '600',
+                            background: '#fff3e0',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            border: '1px solid #ffb74d'
+                          }}>
+                            🎮 Demo Mode: Transaction simulated (government wallet has no SOL)
+                          </div>
+                        )}
                       </div>
-                      <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
-                        Message: {voteConfirmation.message}
-                      </div>
-                      {voteConfirmation.transactionSignature && (
-                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
-                          Transaction: {voteConfirmation.transactionSignature.slice(0, 8)}...{voteConfirmation.transactionSignature.slice(-8)}
-                        </div>
-                      )}
-                      <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
-                        Blockchain: {voteConfirmation.blockchainConfirmed ? '✅ Confirmed' : '⚠️ Local Only'}
-                      </div>
-                      {voteConfirmation.feePaidBy && (
-                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
-                          💰 Fee paid by: {voteConfirmation.feePaidBy}
-                        </div>
-                      )}
-                      {voteConfirmation.rateLimitInfo && (
-                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
-                          ⏱️ Remaining votes: {voteConfirmation.rateLimitInfo.remainingVotes}
-                        </div>
-                      )}
-                      {voteConfirmation.governmentWallet && (
-                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
-                          🏛️ Government wallet: {voteConfirmation.governmentWallet.slice(0, 8)}...{voteConfirmation.governmentWallet.slice(-8)}
-                        </div>
-                      )}
-                      {voteConfirmation.demoMode && (
-                        <div style={{ 
-                          color: '#ff9800', 
-                          marginBottom: '4px',
-                          fontWeight: '500',
-                          background: '#fff3e0',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '1px solid #ffb74d'
-                        }}>
-                          🎮 Demo Mode: Transaction simulated (government wallet has no SOL)
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>

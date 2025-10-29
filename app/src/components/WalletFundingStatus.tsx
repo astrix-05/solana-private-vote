@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import apiService from '../services/apiService';
 
 interface WalletFundingStatusProps {
@@ -10,23 +10,27 @@ interface FundingStatus {
   currentBalance: number;
   minimumBalance: number;
   targetBalance: number;
+  airdropAmount: number;
+  checkInterval: number;
   isLow: boolean;
   isWarning: boolean;
   network: string;
   walletAddress: string;
   lastCheck: string;
   fundingAttempts: number;
+  lastFundingAttempt: string | null;
 }
 
 const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails = false }) => {
   const [fundingStatus, setFundingStatus] = useState<FundingStatus | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchFundingStatus = async () => {
+  const fetchFundingStatus = useCallback(async () => {
+    setRefreshing(true);
+    setError(null);
     try {
-      setError(null);
       const response = await apiService.getWalletFundingStatus();
       if (response.success) {
         setFundingStatus(response.funding);
@@ -34,64 +38,59 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
         setError('Failed to fetch funding status');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch funding status');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const handleForceFund = async () => {
-    try {
-      setRefreshing(true);
-      const response = await apiService.forceFundWallet();
-      if (response.success) {
-        // Refresh status after funding
-        await fetchFundingStatus();
-      } else {
-        setError('Failed to fund wallet');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fund wallet');
+      console.error('Error fetching wallet funding status:', err);
+      setError(err instanceof Error ? err.message : 'Network error');
     } finally {
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchFundingStatus();
-    
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchFundingStatus, 30000);
+    const interval = setInterval(fetchFundingStatus, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchFundingStatus]);
+
+  const handleForceFund = async () => {
+    if (window.confirm('Are you sure you want to force an airdrop to the relayer wallet? This is only for devnet/testnet.')) {
+      setRefreshing(true);
+      try {
+        const response = await apiService.forceFundWallet();
+        if (response.success) {
+          alert(response.message);
+          fetchFundingStatus(); // Refresh status after funding attempt
+        } else {
+          alert('Failed to fund wallet');
+        }
+      } catch (err) {
+        console.error('Error forcing fund:', err);
+        alert(`Error forcing fund: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      } finally {
+        setRefreshing(false);
+      }
+    }
+  };
 
   if (loading) {
     return (
-      <div style={{
-        padding: '12px',
-        background: 'var(--bg-section)',
-        border: '1px solid var(--border-light)',
-        borderRadius: '6px',
-        fontSize: '14px',
-        color: 'var(--text-muted)'
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '24px', 
+        color: 'var(--text-muted)',
+        background: 'var(--btn-bg)',
+        borderRadius: 'var(--radius)',
+        border: '1px solid var(--border-grey)'
       }}>
-        Loading wallet status...
+        <div className="loading-spinner" style={{ margin: '0 auto 16px' }} />
+        <p style={{ margin: 0, fontSize: '16px' }}>Loading relayer wallet status...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{
-        padding: '12px',
-        background: '#ffebee',
-        border: '1px solid #f44336',
-        borderRadius: '6px',
-        fontSize: '14px',
-        color: '#c62828'
-      }}>
-        Error: {error}
+      <div className="status-error">
+        <strong>Error:</strong> {error}
       </div>
     );
   }
@@ -101,119 +100,232 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
   }
 
   const getStatusColor = () => {
-    if (fundingStatus.isLow) return '#dc3545'; // Subtle red
-    if (fundingStatus.isWarning) return '#ffc107'; // Subtle yellow
-    return '#28a745'; // Subtle green
+    if (fundingStatus.isLow) return 'var(--accent-pink)';
+    if (fundingStatus.isWarning) return '#ffa726';
+    return 'var(--accent-green)';
   };
 
   const getStatusText = () => {
-    if (fundingStatus.isLow) return 'Low Balance';
-    if (fundingStatus.isWarning) return 'Low Balance';
-    return 'Ready';
+    if (fundingStatus.isLow) return 'Critical';
+    if (fundingStatus.isWarning) return 'Warning';
+    return 'Healthy';
   };
 
   const getStatusIcon = () => {
-    if (fundingStatus.isLow) return '●';
-    if (fundingStatus.isWarning) return '●';
-    return '●';
+    if (fundingStatus.isLow) return '🚨';
+    if (fundingStatus.isWarning) return '⚠️';
+    return '✅';
   };
 
   return (
     <div style={{
-      padding: 'var(--space-card)',
-      background: 'var(--bg-card)',
-      border: `1px solid ${getStatusColor()}`,
-      borderRadius: 'var(--radius-card)',
-      fontSize: '14px',
-      boxShadow: 'var(--shadow-card)'
+      background: 'linear-gradient(135deg, var(--bg-card) 0%, #1a1a2e 100%)',
+      border: `2px solid ${getStatusColor()}`,
+      borderRadius: 'var(--radius)',
+      padding: '24px',
+      boxShadow: fundingStatus.isLow ? 'var(--shadow-pink)' : 'var(--shadow)',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: showDetails ? '8px' : '0'
+        marginBottom: showDetails ? '20px' : '0'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '16px' }}>{getStatusIcon()}</span>
-          <span style={{ 
-            fontWeight: '600', 
-            color: getStatusColor(),
-            fontSize: '12px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px'
-          }}>
-            {getStatusText()}
-          </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '24px' }}>{getStatusIcon()}</span>
+          <div>
+            <h3 style={{
+              margin: '0 0 4px 0',
+              fontSize: '20px',
+              fontWeight: '700',
+              color: getStatusColor()
+            }}>
+              Relayer Wallet Status
+            </h3>
+            <p style={{
+              margin: 0,
+              fontSize: '14px',
+              color: 'var(--text-muted)',
+              fontWeight: '500'
+            }}>
+              {getStatusText()} • {fundingStatus.currentBalance.toFixed(4)} SOL
+            </p>
+          </div>
         </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: 'var(--text-muted)' }}>
-            {fundingStatus.currentBalance.toFixed(4)} SOL
-          </span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={fetchFundingStatus}
             disabled={refreshing}
+            className="btn-ghost"
             style={{
-              padding: '4px 8px',
-              background: 'var(--button-bg)',
-              color: 'var(--text-main)',
-              border: '1px solid var(--button-border)',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '12px',
+              padding: '8px 16px',
+              fontSize: '14px',
               opacity: refreshing ? 0.6 : 1
             }}
           >
-            {refreshing ? '...' : '↻'}
+            {refreshing ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="loading-dots">
+                  <div className="loading-dot" />
+                  <div className="loading-dot" />
+                  <div className="loading-dot" />
+                </div>
+                Refreshing...
+              </div>
+            ) : (
+              '🔄 Refresh'
+            )}
           </button>
         </div>
       </div>
 
+      {/* Details Section */}
       {showDetails && (
-        <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-          <div style={{ marginBottom: '4px' }}>
-            Min: {fundingStatus.minimumBalance} SOL | Target: {fundingStatus.targetBalance} SOL
+        <div style={{
+          paddingTop: '20px',
+          borderTop: '1px solid var(--border-grey)'
+        }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '20px',
+            marginBottom: '20px'
+          }}>
+            <div>
+              <h4 style={{
+                margin: '0 0 8px 0',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Wallet Address
+              </h4>
+              <p style={{
+                margin: 0,
+                fontSize: '16px',
+                color: 'var(--text-main)',
+                fontFamily: 'monospace',
+                wordBreak: 'break-all'
+              }}>
+                {fundingStatus.walletAddress.slice(0, 8)}...{fundingStatus.walletAddress.slice(-8)}
+              </p>
+            </div>
+
+            <div>
+              <h4 style={{
+                margin: '0 0 8px 0',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Network
+              </h4>
+              <p style={{
+                margin: 0,
+                fontSize: '16px',
+                color: 'var(--text-main)',
+                fontWeight: '500'
+              }}>
+                {fundingStatus.network}
+              </p>
+            </div>
+
+            <div>
+              <h4 style={{
+                margin: '0 0 8px 0',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Balance Thresholds
+              </h4>
+              <div style={{ fontSize: '14px', color: 'var(--text-main)' }}>
+                <div>Min: {fundingStatus.minimumBalance} SOL</div>
+                <div>Target: {fundingStatus.targetBalance} SOL</div>
+              </div>
+            </div>
+
+            <div>
+              <h4 style={{
+                margin: '0 0 8px 0',
+                fontSize: '14px',
+                fontWeight: '600',
+                color: 'var(--text-muted)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Last Check
+              </h4>
+              <p style={{
+                margin: 0,
+                fontSize: '14px',
+                color: 'var(--text-main)'
+              }}>
+                {new Date(fundingStatus.lastCheck).toLocaleTimeString()}
+              </p>
+            </div>
           </div>
-          <div style={{ marginBottom: '4px' }}>
-            Network: {fundingStatus.network} | Monitoring: {fundingStatus.isMonitoring ? 'ON' : 'OFF'}
-          </div>
-          <div style={{ marginBottom: '4px' }}>
-            Wallet: {fundingStatus.walletAddress.slice(0, 8)}...{fundingStatus.walletAddress.slice(-8)}
-          </div>
-          <div style={{ marginBottom: '8px' }}>
-            Last check: {new Date(fundingStatus.lastCheck).toLocaleTimeString()}
-          </div>
-          
+
+          {/* Critical Warning */}
           {fundingStatus.isLow && (
             <div style={{
-              padding: '12px',
-              background: '#fff3cd',
-              border: '1px solid #ffc107',
-              borderRadius: '6px',
-              marginTop: '12px'
+              background: 'var(--accent-pink)',
+              color: 'white',
+              padding: '20px',
+              borderRadius: 'var(--radius)',
+              marginTop: '20px',
+              animation: 'shake 0.5s ease-out'
             }}>
-              <div style={{ color: '#856404', fontWeight: '500', marginBottom: '6px' }}>
-                Low Balance
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '12px'
+              }}>
+                <span style={{ fontSize: '24px' }}>🚨</span>
+                <h4 style={{
+                  margin: 0,
+                  fontSize: '18px',
+                  fontWeight: '700'
+                }}>
+                  Critical: Low Balance Alert
+                </h4>
               </div>
-              <div style={{ color: '#856404', fontSize: '12px', marginBottom: '10px' }}>
-                The relayer wallet needs funding to process votes.
-              </div>
+              <p style={{
+                margin: '0 0 16px 0',
+                fontSize: '14px',
+                opacity: 0.9
+              }}>
+                The relayer wallet needs immediate funding to process votes. 
+                This may cause vote failures if not addressed.
+              </p>
               <button
                 onClick={handleForceFund}
                 disabled={refreshing}
                 style={{
-                  padding: '8px 16px',
-                  background: 'var(--button-bg)',
-                  color: 'var(--text-main)',
-                  border: '1px solid var(--button-border)',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  fontWeight: '500',
-                  opacity: refreshing ? 0.6 : 1
+                  background: 'white',
+                  color: 'var(--accent-pink)',
+                  border: 'none',
+                  borderRadius: 'var(--radius)',
+                  padding: '12px 24px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: refreshing ? 'not-allowed' : 'pointer',
+                  opacity: refreshing ? 0.6 : 1,
+                  transition: 'var(--transition)'
                 }}
               >
-                {refreshing ? 'Funding...' : 'Fund Wallet'}
+                {refreshing ? 'Funding...' : '💰 Fund Wallet Now'}
               </button>
             </div>
           )}
@@ -224,4 +336,3 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
 };
 
 export default WalletFundingStatus;
-

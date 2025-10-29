@@ -58,16 +58,24 @@ const VoterStats: React.FC<VoterStatsProps> = ({ voterAddress, showDetails = fal
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)' }}>
-        Loading voter information...
+      <div style={{ 
+        textAlign: 'center', 
+        padding: '24px', 
+        color: 'var(--text-muted)',
+        background: 'var(--btn-bg)',
+        borderRadius: 'var(--radius)',
+        border: '1px solid var(--border-grey)'
+      }}>
+        <div className="loading-spinner" style={{ margin: '0 auto 16px' }} />
+        <p style={{ margin: 0, fontSize: '16px' }}>Loading voter information...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ textAlign: 'center', padding: '16px', color: 'var(--error-color)' }}>
-        Error: {error}
+      <div className="status-error">
+        <strong>Error:</strong> {error}
       </div>
     );
   }
@@ -80,137 +88,252 @@ const VoterStats: React.FC<VoterStatsProps> = ({ voterAddress, showDetails = fal
 
   return (
     <div style={{
-      background: 'var(--bg-card)',
+      background: 'linear-gradient(135deg, var(--bg-card) 0%, #1a1a2e 100%)',
       border: '1px solid var(--border-grey)',
-      borderRadius: 'var(--radius-card)',
-      padding: '16px',
-      marginBottom: '16px',
-      boxShadow: 'var(--shadow-card)'
+      borderRadius: 'var(--radius)',
+      padding: '24px',
+      marginBottom: '24px',
+      boxShadow: 'var(--shadow)',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
-      <h4 style={{ 
-        margin: '0 0 12px 0', 
-        fontSize: '1rem', 
-        color: 'var(--text-main)',
-        fontWeight: '600'
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '20px'
       }}>
-        Voter Information
-      </h4>
-      
-      {/* Fee Transparency */}
-      <div style={{ marginBottom: '12px' }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <h3 style={{ 
+          margin: 0, 
+          fontSize: '20px', 
+          color: 'var(--text-main)',
+          fontWeight: '700',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <span style={{ fontSize: '24px' }}>👤</span>
+          Voter Information
+        </h3>
+        
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
           gap: '8px',
-          marginBottom: '4px'
+          padding: '8px 16px',
+          background: 'var(--btn-bg)',
+          borderRadius: '20px',
+          border: '1px solid var(--border-grey)',
+          fontSize: '12px',
+          color: 'var(--text-muted)'
         }}>
-          <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>💰</span>
-          <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>
-            Fee paid by: {feeInfo.paidBy}
-          </span>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            background: 'var(--accent-green)',
+            borderRadius: '50%',
+            animation: 'pulse 2s infinite'
+          }} />
+          Active
         </div>
-        <p style={{ 
-          fontSize: '12px', 
-          color: 'var(--text-muted)', 
-          margin: '0 0 0 24px',
-          fontStyle: 'italic'
-        }}>
-          {feeInfo.description}
-        </p>
       </div>
 
-      {/* Rate Limiting Info */}
-      <div style={{ marginBottom: '12px' }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '8px',
-          marginBottom: '4px'
+      {/* Stats Grid */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '20px'
+      }}>
+        {/* Fee Transparency */}
+        <div style={{
+          padding: '16px',
+          background: 'var(--btn-bg)',
+          borderRadius: 'var(--radius)',
+          border: '1px solid var(--border-grey)'
         }}>
-          <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>⏱️</span>
-          <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>
-            Rate Limit: {rateLimit.remainingVotes} votes remaining
-          </span>
-        </div>
-        <p style={{ 
-          fontSize: '12px', 
-          color: 'var(--text-muted)', 
-          margin: '0 0 0 24px'
-        }}>
-          {rateLimit.votesInLastHour}/{rateLimit.maxVotesPerHour} votes used in the last hour
-        </p>
-        {rateLimit.resetTime && (
-          <p style={{ 
-            fontSize: '12px', 
-            color: 'var(--text-muted)', 
-            margin: '4px 0 0 24px'
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            marginBottom: '12px'
           }}>
-            Resets at: {new Date(rateLimit.resetTime).toLocaleTimeString()}
+            <span style={{ fontSize: '20px' }}>💰</span>
+            <span style={{ 
+              fontSize: '16px', 
+              fontWeight: '600', 
+              color: 'var(--text-main)'
+            }}>
+              Fee Information
+            </span>
+          </div>
+          <div style={{ color: 'var(--accent-green)', fontWeight: '600', marginBottom: '8px' }}>
+            Paid by: {feeInfo.paidBy}
+          </div>
+          <p style={{ 
+            fontSize: '14px', 
+            color: 'var(--text-muted)', 
+            margin: 0,
+            lineHeight: '1.4'
+          }}>
+            {feeInfo.description}
           </p>
-        )}
-      </div>
+        </div>
 
-      {/* Identity Verification */}
-      {showDetails && identity && (
-        <div style={{ marginBottom: '12px' }}>
+        {/* Rate Limiting */}
+        <div style={{
+          padding: '16px',
+          background: 'var(--btn-bg)',
+          borderRadius: 'var(--radius)',
+          border: '1px solid var(--border-grey)'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            marginBottom: '12px'
+          }}>
+            <span style={{ fontSize: '20px' }}>⏱️</span>
+            <span style={{ 
+              fontSize: '16px', 
+              fontWeight: '600', 
+              color: 'var(--text-main)'
+            }}>
+              Rate Limit
+            </span>
+          </div>
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '8px',
-            marginBottom: '4px'
+            marginBottom: '8px'
           }}>
-            <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>✅</span>
-            <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>
-              Identity Verified
+            <span style={{ 
+              fontSize: '24px', 
+              fontWeight: '700',
+              color: rateLimit.remainingVotes > 5 ? 'var(--accent-green)' : 
+                     rateLimit.remainingVotes > 2 ? '#ffa726' : 'var(--accent-pink)'
+            }}>
+              {rateLimit.remainingVotes}
+            </span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>
+              votes remaining
             </span>
           </div>
-          <p style={{ 
-            fontSize: '12px', 
-            color: 'var(--text-muted)', 
-            margin: '0 0 0 24px'
+          <div style={{ 
+            fontSize: '14px', 
+            color: 'var(--text-muted)',
+            marginBottom: '4px'
           }}>
-            Method: {identity.verificationMethod} | 
-            First seen: {new Date(identity.firstSeen).toLocaleDateString()}
-          </p>
+            {rateLimit.votesInLastHour}/{rateLimit.maxVotesPerHour} used this hour
+          </div>
+          {rateLimit.resetTime && (
+            <div style={{ 
+              fontSize: '12px', 
+              color: 'var(--text-muted)'
+            }}>
+              Resets: {new Date(rateLimit.resetTime).toLocaleTimeString()}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Warning for low remaining votes */}
+        {/* Identity Verification */}
+        {showDetails && identity && (
+          <div style={{
+            padding: '16px',
+            background: 'var(--btn-bg)',
+            borderRadius: 'var(--radius)',
+            border: '1px solid var(--border-grey)'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px',
+              marginBottom: '12px'
+            }}>
+              <span style={{ fontSize: '20px' }}>✅</span>
+              <span style={{ 
+                fontSize: '16px', 
+                fontWeight: '600', 
+                color: 'var(--text-main)'
+              }}>
+                Identity Verified
+              </span>
+            </div>
+            <div style={{ 
+              fontSize: '14px', 
+              color: 'var(--text-muted)',
+              marginBottom: '8px'
+            }}>
+              <strong>Method:</strong> {identity.verificationMethod}
+            </div>
+            <div style={{ 
+              fontSize: '14px', 
+              color: 'var(--text-muted)'
+            }}>
+              <strong>First seen:</strong> {new Date(identity.firstSeen).toLocaleDateString()}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Warning Messages */}
       {rateLimit.remainingVotes <= 2 && rateLimit.remainingVotes > 0 && (
         <div style={{
-          background: '#fff3cd',
-          border: '1px solid #ffc107',
-          borderRadius: '4px',
-          padding: '8px',
-          marginTop: '8px'
+          background: '#fff3e0',
+          border: '1px solid #ffb74d',
+          borderRadius: 'var(--radius)',
+          padding: '16px',
+          marginTop: '20px',
+          animation: 'slideInFromTop 0.5s ease-out'
         }}>
-          <p style={{ 
-            fontSize: '12px', 
-            color: '#856404', 
-            margin: 0,
-            fontWeight: '500'
+          <div style={{ 
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            color: '#e65100',
+            fontWeight: '600',
+            fontSize: '16px'
           }}>
-            ⚠️ You have {rateLimit.remainingVotes} votes remaining this hour
+            <span style={{ fontSize: '20px' }}>⚠️</span>
+            <span>Low Vote Count Warning</span>
+          </div>
+          <p style={{ 
+            color: '#e65100',
+            margin: '8px 0 0 0',
+            fontSize: '14px'
+          }}>
+            You have {rateLimit.remainingVotes} votes remaining this hour. Use them wisely!
           </p>
         </div>
       )}
 
-      {/* Rate limit exceeded warning */}
       {rateLimit.remainingVotes === 0 && (
         <div style={{
-          background: '#f8d7da',
-          border: '1px solid #f5c6cb',
-          borderRadius: '4px',
-          padding: '8px',
-          marginTop: '8px'
+          background: 'var(--accent-pink)',
+          color: 'white',
+          borderRadius: 'var(--radius)',
+          padding: '16px',
+          marginTop: '20px',
+          animation: 'shake 0.5s ease-out'
         }}>
-          <p style={{ 
-            fontSize: '12px', 
-            color: '#721c24', 
-            margin: 0,
-            fontWeight: '500'
+          <div style={{ 
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            fontWeight: '600',
+            fontSize: '16px',
+            marginBottom: '8px'
           }}>
-            🚫 Rate limit exceeded. Please wait before voting again.
+            <span style={{ fontSize: '20px' }}>🚫</span>
+            <span>Rate Limit Exceeded</span>
+          </div>
+          <p style={{ 
+            margin: 0,
+            fontSize: '14px',
+            opacity: 0.9
+          }}>
+            You've reached the maximum number of votes for this hour. Please wait before voting again.
           </p>
         </div>
       )}

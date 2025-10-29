@@ -14,152 +14,104 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
   const navItems = [
-    { id: 'create', icon: '+', label: 'Create Poll' },
-    { id: 'vote', icon: '○', label: 'Vote' },
-    { id: 'manage', icon: '⚙', label: 'Manage' },
-    { id: 'results', icon: '▣', label: 'Results' }
-  ] as const;
+    { id: 'create', icon: '✏️', label: 'Create' },
+    { id: 'vote', icon: '🗳️', label: 'Vote' },
+    { id: 'manage', icon: '⚙️', label: 'Manage' },
+    { id: 'results', icon: '📊', label: 'Results' }
+  ];
 
   const handleItemClick = (itemId: string) => {
     onViewChange(itemId as 'create' | 'vote' | 'manage' | 'results');
   };
 
   if (isMobile) {
-    // Bottom navigation for mobile
+    // Mobile bottom navigation
     return (
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: 'var(--bg-main)',
-        display: 'flex',
-        justifyContent: 'space-around',
-        padding: '20px 0',
-        zIndex: 1000,
-        borderTop: '1px solid var(--border-grey)',
-        boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.1)'
-      }}>
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => handleItemClick(item.id)}
-            onMouseEnter={() => setHoveredItem(item.id)}
-            onMouseLeave={() => setHoveredItem(null)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '12px 16px',
-              background: currentView === item.id ? 'var(--bg-card)' : 'transparent',
-              border: currentView === item.id ? '1px solid var(--button-border)' : '1px solid transparent',
-              cursor: 'pointer',
-              fontSize: '24px',
-              color: currentView === item.id ? 'var(--icon-active)' : 'var(--icon-grey)',
-              position: 'relative',
-              minHeight: '60px',
-              minWidth: '60px',
-              borderRadius: '8px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <span style={{ marginBottom: '2px' }}>{item.icon}</span>
-            <span style={{ 
-              fontSize: '12px', 
-              fontWeight: currentView === item.id ? '600' : '400',
-              color: currentView === item.id ? 'var(--text-main)' : 'var(--text-muted)'
-            }}>
-              {item.label}
-            </span>
-            {currentView === item.id && (
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '4px',
-                height: '4px',
-                background: 'var(--accent-light)',
-                borderRadius: '50%'
-              }} />
-            )}
-          </button>
-        ))}
+      <div className="mobile-nav">
+        <div className="mobile-nav-content">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleItemClick(item.id)}
+              onMouseEnter={() => setHoveredItem(item.id)}
+              onMouseLeave={() => setHoveredItem(null)}
+              className={`mobile-nav-icon ${currentView === item.id ? 'active' : ''}`}
+              style={{
+                transform: currentView === item.id ? 'scale(1.05)' : 'scale(1)',
+                transition: 'var(--transition)'
+              }}
+            >
+              <span style={{ fontSize: '20px' }}>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
 
-  // Sidebar for desktop
+  // Desktop sidebar navigation
   return (
     <div style={{
       position: 'fixed',
-      left: 0,
-      top: 0,
-      bottom: 0,
-      width: '60px',
-      background: 'var(--bg-main)',
+      left: '0',
+      top: '100px',
+      bottom: '0',
+      width: '80px',
+      background: 'var(--bg-card)',
+      borderRight: '1px solid var(--border-grey)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       padding: '24px 0',
-      zIndex: 1000,
-      borderRight: '1px solid var(--border-grey)',
-      boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)'
+      zIndex: '100',
+      boxShadow: 'var(--shadow)'
     }}>
       {navItems.map((item) => (
-        <div key={item.id} style={{ position: 'relative', marginBottom: '20px' }}>
+        <div key={item.id} style={{ position: 'relative', marginBottom: '32px' }}>
           <button
             onClick={() => handleItemClick(item.id)}
             onMouseEnter={() => setHoveredItem(item.id)}
             onMouseLeave={() => setHoveredItem(null)}
+            className={`nav-icon ${currentView === item.id ? 'active' : ''}`}
             style={{
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: currentView === item.id ? 'var(--bg-card)' : 'transparent',
-              border: currentView === item.id ? '1px solid var(--button-border)' : '1px solid transparent',
-              cursor: 'pointer',
-              fontSize: '20px',
-              color: currentView === item.id ? 'var(--icon-active)' : 'var(--icon-grey)',
-              borderRadius: '8px',
-              transition: 'all 0.2s ease'
+              transform: currentView === item.id ? 'scale(1.1)' : 'scale(1)',
+              transition: 'var(--transition)'
             }}
           >
-            {item.icon}
+            <span style={{ fontSize: '24px' }}>{item.icon}</span>
           </button>
-          
+
           {/* Tooltip */}
           {hoveredItem === item.id && (
             <div style={{
               position: 'absolute',
-              left: '50px',
+              left: '90px',
               top: '50%',
               transform: 'translateY(-50%)',
-              background: 'var(--bg-tooltip)',
-              color: 'var(--text-primary)',
-              padding: '8px 12px',
-              fontSize: '12px',
-              fontWeight: '500',
+              background: 'var(--bg-card)',
+              color: 'var(--text-main)',
+              padding: '12px 16px',
+              borderRadius: 'var(--radius)',
               whiteSpace: 'nowrap',
-              zIndex: 1001,
-              borderRadius: '6px',
-              border: '1px solid var(--border-light)',
-              boxShadow: 'var(--shadow-subtle)'
+              fontSize: '14px',
+              fontWeight: '600',
+              boxShadow: 'var(--shadow)',
+              border: '1px solid var(--border-grey)',
+              zIndex: '1000',
+              animation: 'fadeInUp 0.3s ease-out'
             }}>
               {item.label}
               <div style={{
                 position: 'absolute',
-                left: '-4px',
+                left: '-6px',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                width: 0,
-                height: 0,
-                borderTop: '4px solid transparent',
-                borderBottom: '4px solid transparent',
-                borderRight: '4px solid #333'
+                width: '0',
+                height: '0',
+                borderTop: '6px solid transparent',
+                borderBottom: '6px solid transparent',
+                borderRight: '6px solid var(--bg-card)'
               }} />
             </div>
           )}
