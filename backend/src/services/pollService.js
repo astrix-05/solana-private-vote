@@ -218,13 +218,15 @@ class PollService {
           success: true,
           message: 'Vote submitted successfully',
           transactionSignature: txResult.signature,
-          blockchainConfirmed: true,
+          blockchainConfirmed: !txResult.demoMode,
           feePaidBy: 'government',
           voterIdentity: identityCheck.identity,
           rateLimitInfo: {
             remainingVotes: 10 - this.voterRateLimit.get(voterKey).length,
             resetTime: new Date(now + (60 * 60 * 1000)).toISOString()
-          }
+          },
+          demoMode: txResult.demoMode || false,
+          governmentWallet: this.governmentWallet.publicKey.toBase58()
         };
         
       } catch (txError) {
@@ -241,7 +243,9 @@ class PollService {
           rateLimitInfo: {
             remainingVotes: 10 - this.voterRateLimit.get(voterKey).length,
             resetTime: new Date(now + (60 * 60 * 1000)).toISOString()
-          }
+          },
+          demoMode: true,
+          governmentWallet: this.governmentWallet.publicKey.toBase58()
         };
       }
 

@@ -20,6 +20,8 @@ export interface VoteResponse {
     remainingVotes: number;
     resetTime: string;
   };
+  demoMode?: boolean;
+  governmentWallet?: string;
 }
 
 export interface CreatePollRequest {

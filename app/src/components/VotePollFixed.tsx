@@ -350,6 +350,24 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
                           ⏱️ Remaining votes: {voteConfirmation.rateLimitInfo.remainingVotes}
                         </div>
                       )}
+                      {voteConfirmation.governmentWallet && (
+                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
+                          🏛️ Government wallet: {voteConfirmation.governmentWallet.slice(0, 8)}...{voteConfirmation.governmentWallet.slice(-8)}
+                        </div>
+                      )}
+                      {voteConfirmation.demoMode && (
+                        <div style={{ 
+                          color: '#ff9800', 
+                          marginBottom: '4px',
+                          fontWeight: '500',
+                          background: '#fff3e0',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          border: '1px solid #ffb74d'
+                        }}>
+                          🎮 Demo Mode: Transaction simulated (government wallet has no SOL)
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
