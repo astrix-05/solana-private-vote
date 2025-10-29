@@ -59,10 +59,10 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: '#f8f9fa',
+        background: 'var(--bg-card)',
         textAlign: 'center'
       }}>
-        <p style={{ fontSize: '18px', color: '#666' }}>
+        <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
           No polls available yet. Create a poll and get some votes!
         </p>
       </div>
@@ -80,10 +80,10 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: '#f8f9fa',
+        background: 'var(--bg-card)',
         textAlign: 'center'
       }}>
-        <p style={{ fontSize: '18px', color: '#666' }}>
+        <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
           No results to display yet. Votes will appear here!
         </p>
       </div>
@@ -99,13 +99,13 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
       <h2 style={{
         fontSize: '28px',
         marginBottom: '10px',
-        color: '#333'
+        color: 'var(--text-primary)'
       }}>
         Poll Results
       </h2>
       <p style={{
         fontSize: '16px',
-        color: '#666',
+        color: 'var(--text-muted)',
         marginBottom: '30px'
       }}>
         View detailed voting results with visual charts
@@ -117,7 +117,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
           <h3 style={{
             fontSize: '20px',
             fontWeight: '600',
-            color: '#333',
+            color: 'var(--text-primary)',
             marginBottom: '16px',
             marginTop: '24px'
           }}>
@@ -133,7 +133,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
 
               return (
                 <div key={poll.id} style={{
-                  background: '#f8f9fa',
+                  background: 'var(--bg-card)',
                   padding: '24px',
                   marginBottom: '16px'
                 }}>
@@ -148,7 +148,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <h3 style={{
                           fontSize: '24px',
-                          color: '#333',
+                          color: 'var(--text-primary)',
                           fontWeight: '600',
                           margin: 0
                         }}>
@@ -169,7 +169,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                       {poll.isAnonymous && (
                         <p style={{
                           fontSize: '12px',
-                          color: '#666',
+                          color: 'var(--text-muted)',
                           margin: 0,
                           fontStyle: 'italic'
                         }}>
@@ -205,7 +205,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                     </div>
                     <div style={{
                       fontSize: '14px',
-                      color: '#666',
+                      color: 'var(--text-muted)',
                       textAlign: 'center',
                       marginTop: '5px'
                     }}>
@@ -260,7 +260,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                               <span style={{
                                 fontSize: '18px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 minWidth: '40px',
                                 textAlign: 'right'
                               }}>
@@ -365,7 +365,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
 
               return (
                 <div key={poll.id} style={{
-                  background: '#f8f9fa',
+                  background: 'var(--bg-card)',
                   padding: '24px',
                   marginBottom: '16px',
                   opacity: isExpired ? 0.7 : 1
@@ -381,7 +381,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                         <h3 style={{
                           fontSize: '24px',
-                          color: '#333',
+                          color: 'var(--text-primary)',
                           fontWeight: '600',
                           margin: 0
                         }}>
@@ -402,7 +402,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                       {poll.isAnonymous && (
                         <p style={{
                           fontSize: '12px',
-                          color: '#666',
+                          color: 'var(--text-muted)',
                           margin: 0,
                           fontStyle: 'italic'
                         }}>
@@ -438,7 +438,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                     </div>
                     <div style={{
                       fontSize: '14px',
-                      color: '#666',
+                      color: 'var(--text-muted)',
                       textAlign: 'center',
                       marginTop: '5px'
                     }}>
@@ -493,7 +493,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
                               <span style={{
                                 fontSize: '18px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 minWidth: '40px',
                                 textAlign: 'right'
                               }}>

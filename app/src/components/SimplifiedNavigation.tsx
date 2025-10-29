@@ -32,11 +32,12 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'white',
+        background: 'var(--bg-nav)',
         display: 'flex',
         justifyContent: 'space-around',
         padding: '16px 0',
-        zIndex: 1000
+        zIndex: 1000,
+        borderTop: '1px solid var(--border-light)'
       }}>
         {navItems.map((item) => (
           <button
@@ -54,7 +55,7 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
               border: 'none',
               cursor: 'pointer',
               fontSize: '24px',
-              color: currentView === item.id ? '#1a1a1a' : '#999',
+              color: currentView === item.id ? 'var(--accent-primary)' : 'var(--text-lighter)',
               position: 'relative',
               minHeight: '60px',
               minWidth: '60px'
@@ -64,7 +65,7 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
             <span style={{ 
               fontSize: '12px', 
               fontWeight: currentView === item.id ? '600' : '400',
-              color: currentView === item.id ? '#1a1a1a' : '#999'
+              color: currentView === item.id ? 'var(--accent-primary)' : 'var(--text-lighter)'
             }}>
               {item.label}
             </span>
@@ -76,7 +77,7 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
                 transform: 'translateX(-50%)',
                 width: '4px',
                 height: '4px',
-                background: '#1a1a1a',
+                background: 'var(--accent-primary)',
                 borderRadius: '50%'
               }} />
             )}
@@ -94,12 +95,13 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
       top: 0,
       bottom: 0,
       width: '60px',
-      background: 'white',
+      background: 'var(--bg-nav)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       padding: '24px 0',
-      zIndex: 1000
+      zIndex: 1000,
+      borderRight: '1px solid var(--border-light)'
     }}>
       {navItems.map((item) => (
         <div key={item.id} style={{ position: 'relative', marginBottom: '20px' }}>
@@ -113,11 +115,11 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: currentView === item.id ? '#f0f0f0' : 'transparent',
+              background: currentView === item.id ? 'var(--bg-button)' : 'transparent',
               border: 'none',
               cursor: 'pointer',
               fontSize: '20px',
-              color: currentView === item.id ? '#1a1a1a' : '#999'
+              color: currentView === item.id ? 'var(--accent-primary)' : 'var(--text-lighter)'
             }}
           >
             {item.icon}
@@ -130,13 +132,14 @@ const SimplifiedNavigation: React.FC<SimplifiedNavigationProps> = ({
               left: '50px',
               top: '50%',
               transform: 'translateY(-50%)',
-              background: '#333',
+              background: 'var(--accent-primary)',
               color: 'white',
               padding: '8px 12px',
               fontSize: '12px',
               fontWeight: '500',
               whiteSpace: 'nowrap',
-              zIndex: 1001
+              zIndex: 1001,
+              borderRadius: '4px'
             }}>
               {item.label}
               <div style={{

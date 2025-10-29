@@ -53,7 +53,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiryDate }) => {
 
   if (isExpired) {
     return (
-      <span style={{ fontSize: '12px', color: '#d32f2f', fontWeight: '500' }}>
+      <span style={{ fontSize: '12px', color: 'var(--accent-secondary)', fontWeight: '500' }}>
         Expired
       </span>
     );
@@ -78,7 +78,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ expiryDate }) => {
   }
 
   return (
-    <span style={{ fontSize: '12px', color: '#666' }}>
+    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
       {displayText} left
     </span>
   );

@@ -124,9 +124,9 @@ export const WalletButton: React.FC = () => {
             onClick={disconnect}
             style={{
               padding: '8px 16px',
-              background: 'transparent',
-              color: '#666',
-              border: '1px solid #e0e0e0',
+        background: 'var(--bg-button)',
+        color: 'var(--text-primary)',
+        border: '1px solid var(--border-medium)',
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: '400',
@@ -141,9 +141,9 @@ export const WalletButton: React.FC = () => {
           onClick={connect}
           style={{
             padding: '8px 16px',
-            background: '#1a1a1a',
-            color: '#fff',
-            border: 'none',
+        background: 'var(--bg-button)',
+        color: 'var(--text-primary)',
+        border: '1px solid var(--border-medium)',
             cursor: 'pointer',
             fontSize: '14px',
             fontWeight: '500',

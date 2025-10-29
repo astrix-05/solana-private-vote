@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Minimalist Grey Theme Color Palette */
+:root {
+  /* Background Colors */
+  --bg-primary: #F5F5F5;        /* Very light grey background */
+  --bg-secondary: #ECECEC;       /* Alternative light grey */
+  --bg-card: #CCCCCC;            /* Card backgrounds */
+  --bg-section: #B0B0B0;         /* Section containers */
+  --bg-button: #E0E0E0;          /* Button backgrounds */
+  --bg-input: #FAFAFA;           /* Input field backgrounds */
+  --bg-nav: #F0F0F0;             /* Navigation/header backgrounds */
+  
+  /* Text Colors */
+  --text-primary: #222;          /* Primary text (dark grey) */
+  --text-secondary: #333;        /* Alternative primary text */
+  --text-muted: #666;            /* Secondary/help text */
+  --text-light: #888;            /* Light text and icons */
+  --text-lighter: #999;          /* Even lighter text */
+  
+  /* Accent Colors */
+  --accent-primary: #888;        /* Single accent grey for active states */
+  --accent-secondary: #666;      /* Secondary accent for icons */
+  
+  /* Borders and Lines */
+  --border-light: #DDD;          /* Subtle borders */
+  --border-medium: #CCC;         /* Medium borders */
+  --border-dark: #BBB;           /* Darker borders */
+  
+  /* Shadows */
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-none: none;
+}
+
 @layer base {
   html {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -10,7 +42,8 @@
   body {
     margin: 0;
     padding: 0;
-    background: #fafafa;
+    background: var(--bg-primary);
+    color: var(--text-primary);
   }
   
   * {
@@ -20,34 +53,96 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: var(--bg-button);
+    color: var(--text-primary);
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .btn-primary:hover {
+    background: var(--accent-primary);
+    color: white;
+  }
+  
+  .btn-primary:active {
+    background: var(--accent-secondary);
   }
   
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    font-weight: 400;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .btn-secondary:hover {
+    background: var(--bg-button);
   }
   
   .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background: var(--accent-secondary);
+    color: white;
+    border: 1px solid var(--accent-secondary);
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .btn-danger:hover {
+    background: var(--accent-primary);
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 16px;
+    box-shadow: var(--shadow-subtle);
   }
   
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(136, 136, 136, 0.2);
   }
   
   .label {
-    @apply block text-sm font-medium text-gray-700 mb-2;
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
   }
   
   .error {
-    @apply text-red-600 text-sm mt-1;
+    color: var(--accent-secondary);
+    font-size: 12px;
+    margin-top: 4px;
   }
   
   .success {
-    @apply text-green-600 text-sm mt-1;
+    color: var(--accent-primary);
+    font-size: 12px;
+    margin-top: 4px;
   }
 }

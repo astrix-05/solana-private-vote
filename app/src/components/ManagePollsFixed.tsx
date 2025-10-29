@@ -46,10 +46,10 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: '#f8f9fa',
+        background: 'var(--bg-card)',
         textAlign: 'center'
       }}>
-        <p style={{ fontSize: '18px', color: '#666' }}>
+        <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
           You haven't created any polls yet. Create a poll to manage it here!
         </p>
       </div>
@@ -65,13 +65,13 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
       <h2 style={{
         fontSize: '28px',
         marginBottom: '10px',
-        color: '#333'
+        color: 'var(--text-primary)'
       }}>
         Manage Your Polls
       </h2>
       <p style={{
         fontSize: '16px',
-        color: '#666',
+        color: 'var(--text-muted)',
         marginBottom: '30px'
       }}>
         View and manage all polls you've created. Close polls to stop accepting votes.
@@ -97,7 +97,7 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
           <div
             key={poll.id}
             style={{
-              background: '#f8f9fa',
+              background: 'var(--bg-card)',
               padding: '24px',
               marginBottom: '16px',
               border: poll.isActive ? '2px solid #667eea' : '2px solid #e0e0e0'
@@ -112,7 +112,7 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
             }}>
               <h3 style={{
                 fontSize: '22px',
-                color: '#333',
+                color: 'var(--text-primary)',
                 fontWeight: '600',
                 flex: 1,
                 margin: 0
@@ -137,7 +137,7 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
               padding: '15px',
               background: '#f9f9f9'
             }}>
-              <strong style={{ color: '#666', fontSize: '14px' }}>Options:</strong>
+              <strong style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Options:</strong>
               <div style={{ marginTop: '10px', display: 'grid', gap: '8px' }}>
                 {poll.options.map((option, index) => (
                   <div key={index} style={{
@@ -161,11 +161,11 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
               background: '#f0f4ff',
               borderRadius: '8px'
             }}>
-              <div style={{ fontSize: '14px', color: '#666' }}>
+              <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
                 <strong style={{ color: '#333' }}>Status:</strong>{' '}
                 {poll.isActive ? 'Accepting votes' : 'Closed'}
               </div>
-              <div style={{ fontSize: '14px', color: '#666' }}>
+              <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
                 <strong style={{ color: '#333' }}>Votes:</strong>{' '}
                 {poll.votes}
               </div>
@@ -187,7 +187,7 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
                   alignItems: 'center',
                   justifyContent: 'center',
                   background: '#f0f0f0',
-                  color: '#666',
+                  color: 'var(--text-muted)',
                   border: 'none',
                   cursor: 'pointer',
                   fontSize: '18px'
@@ -250,19 +250,19 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#667eea' }}>
             {pollsState.length}
           </div>
-          <div style={{ fontSize: '14px', color: '#666' }}>Total Polls</div>
+          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Total Polls</div>
         </div>
         <div>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#4caf50' }}>
             {pollsState.filter(p => p.isActive).length}
           </div>
-          <div style={{ fontSize: '14px', color: '#666' }}>Active</div>
+          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Active</div>
         </div>
         <div>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ff6b6b' }}>
             {pollsState.filter(p => !p.isActive).length}
           </div>
-          <div style={{ fontSize: '14px', color: '#666' }}>Closed</div>
+          <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Closed</div>
         </div>
       </div>
 

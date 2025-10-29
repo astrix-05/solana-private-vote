@@ -68,7 +68,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
       zIndex: 1000
     }}>
       <div style={{
-        background: 'white',
+        background: 'var(--bg-card)',
         borderRadius: '12px',
         padding: '30px',
         maxWidth: '500px',
@@ -87,7 +87,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
           <h3 style={{
             fontSize: '20px',
             fontWeight: '600',
-            color: '#333',
+            color: 'var(--text-primary)',
             margin: 0
           }}>
             Share Poll
@@ -117,7 +117,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
         }}>
           <p style={{
             fontSize: '14px',
-            color: '#666',
+            color: 'var(--text-muted)',
             margin: '0 0 8px 0',
             fontWeight: '500'
           }}>
@@ -125,7 +125,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
           </p>
           <p style={{
             fontSize: '16px',
-            color: '#333',
+            color: 'var(--text-primary)',
             margin: 0,
             lineHeight: '1.4'
           }}>
@@ -139,7 +139,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
             display: 'block',
             fontSize: '14px',
             fontWeight: '500',
-            color: '#666',
+            color: 'var(--text-muted)',
             marginBottom: '8px'
           }}>
             Poll Link:
@@ -207,7 +207,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
           <p style={{
             fontSize: '14px',
             fontWeight: '500',
-            color: '#666',
+            color: 'var(--text-muted)',
             margin: '0 0 16px 0'
           }}>
             Scan QR Code to join on mobile:
@@ -216,7 +216,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
             <div style={{
               display: 'inline-block',
               padding: '16px',
-              background: 'white',
+              background: 'var(--bg-card)',
               borderRadius: '8px',
               border: '1px solid #e0e0e0',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
@@ -242,7 +242,7 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto',
-              color: '#666',
+              color: 'var(--text-muted)',
               fontSize: '14px'
             }}>
               Generating QR code...

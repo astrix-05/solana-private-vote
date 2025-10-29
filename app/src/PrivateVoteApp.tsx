@@ -238,9 +238,9 @@ function PrivateVoteApp() {
   }, [createdPolls, isPollExpired]);
 
   return (
-        <div style={{
-          minHeight: '100vh',
-          background: '#ffffff',
+    <div style={{ 
+      minHeight: '100vh', 
+          background: 'var(--bg-primary)',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           paddingLeft: isMobile ? '0' : '60px',
           paddingBottom: isMobile ? '80px' : '0'
@@ -331,9 +331,11 @@ function PrivateVoteApp() {
         <div style={{
           margin: '0 0 24px 0',
           padding: '12px 16px',
-          background: message.startsWith('✅') ? '#f0f8f0' : '#fff8e1',
-          color: message.startsWith('✅') ? '#2e7d32' : '#856404',
-          fontSize: '14px'
+          background: 'var(--bg-card)',
+          color: 'var(--text-primary)',
+          fontSize: '14px',
+          border: '1px solid var(--border-light)',
+          borderRadius: '6px'
         }}>
           {message}
         </div>
@@ -342,17 +344,19 @@ function PrivateVoteApp() {
       {/* Demo Mode Banner */}
       {isDemoMode && (
       <div style={{ 
-          background: '#fff8e1',
+          background: 'var(--bg-section)',
           padding: '16px',
           marginBottom: '24px',
         display: 'flex', 
           alignItems: 'center',
-          gap: '8px'
+          gap: '8px',
+          border: '1px solid var(--border-light)',
+          borderRadius: '6px'
         }}>
-          <span style={{ fontSize: '16px' }}>🎮</span>
+          <span style={{ fontSize: '16px', color: 'var(--accent-primary)' }}>🎮</span>
           <div>
-            <strong style={{ color: '#856404', fontSize: '14px' }}>Demo Mode</strong>
-            <p style={{ color: '#856404', fontSize: '12px', margin: '2px 0 0 0' }}>
+            <strong style={{ color: 'var(--text-primary)', fontSize: '14px' }}>Demo Mode</strong>
+            <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '2px 0 0 0' }}>
               You're viewing a demonstration with mock data. Connect your wallet to create real polls.
             </p>
           </div>
@@ -365,9 +369,9 @@ function PrivateVoteApp() {
           style={{
               marginLeft: 'auto',
               padding: '4px 8px',
-              background: 'transparent',
-              color: '#856404',
-              border: '1px solid #856404',
+              background: 'var(--bg-button)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-medium)',
               borderRadius: '4px',
             cursor: 'pointer',
               fontSize: '12px'
@@ -381,22 +385,24 @@ function PrivateVoteApp() {
         {/* Wallet Connection Prompt - Show when not connected and not in demo mode */}
         {!connected && !isDemoMode && (
           <div style={{
-            background: '#f0f8ff',
+            background: 'var(--bg-card)',
             padding: '20px',
             marginBottom: '24px',
-            textAlign: 'center'
+            textAlign: 'center',
+            border: '1px solid var(--border-light)',
+            borderRadius: '6px'
           }}>
             <h3 style={{
             fontSize: '16px',
             fontWeight: '600',
-              color: '#1976d2',
+              color: 'var(--text-primary)',
               margin: '0 0 8px 0'
             }}>
               🔗 Connect Your Wallet
             </h3>
             <p style={{
               fontSize: '14px',
-              color: '#1976d2',
+              color: 'var(--text-muted)',
               margin: '0 0 12px 0',
               lineHeight: '1.4'
             }}>
@@ -406,9 +412,9 @@ function PrivateVoteApp() {
               onClick={connect}
           style={{
                 padding: '8px 16px',
-                background: '#1976d2',
-                color: 'white',
-            border: 'none',
+                background: 'var(--bg-button)',
+                color: 'var(--text-primary)',
+            border: '1px solid var(--border-medium)',
                 borderRadius: '6px',
             cursor: 'pointer',
                 fontSize: '14px',
@@ -425,20 +431,22 @@ function PrivateVoteApp() {
         <div style={{
           textAlign: 'center',
           padding: '40px 20px',
-          background: '#f8f9fa',
-          marginBottom: '32px'
+          background: 'var(--bg-card)',
+          marginBottom: '32px',
+          border: '1px solid var(--border-light)',
+          borderRadius: '6px'
         }}>
           <h3 style={{
             fontSize: '18px',
             fontWeight: '600',
-            color: '#333',
+            color: 'var(--text-primary)',
             margin: '0 0 8px 0'
           }}>
             Try Private Vote
           </h3>
           <p style={{
             fontSize: '14px',
-            color: '#666',
+            color: 'var(--text-muted)',
             margin: '0 0 20px 0',
             lineHeight: '1.4'
           }}>
@@ -448,15 +456,16 @@ function PrivateVoteApp() {
             onClick={createDemoPoll}
             style={{
               padding: '12px 24px',
-              background: '#1a1a1a',
-              color: 'white',
-              border: 'none',
+              background: 'var(--bg-button)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-medium)',
               cursor: 'pointer',
               fontSize: '14px',
-              fontWeight: '500'
+              fontWeight: '500',
+              borderRadius: '6px'
             }}
-            onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = '#333'}
-            onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = '#1a1a1a'}
+            onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = 'var(--accent-primary)'}
+            onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = 'var(--bg-button)'}
           >
             🎮 Try Demo
           </button>
@@ -479,7 +488,7 @@ function PrivateVoteApp() {
         <div style={{
           textAlign: 'center',
           padding: '48px 16px',
-          color: '#999'
+          color: 'var(--text-lighter)'
         }}>
           <p style={{ fontSize: '14px', margin: 0 }}>
             No polls created yet. Click "Create" to get started.

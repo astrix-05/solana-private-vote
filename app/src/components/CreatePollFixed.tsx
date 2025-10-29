@@ -100,7 +100,7 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
         fontSize: '24px', 
         fontWeight: '700',
         margin: '0 0 8px 0',
-        color: '#1a1a1a'
+        color: 'var(--text-primary)'
       }}>
         New Poll
       </h2>
@@ -112,7 +112,7 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
           marginBottom: '8px',
           fontSize: '12px',
           fontWeight: '500',
-          color: '#666'
+          color: 'var(--text-muted)'
         }}>
           Question
         </label>
@@ -124,17 +124,20 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
           style={{
             width: '100%',
             padding: '12px',
-            border: '1px solid #e0e0e0',
+            border: '1px solid var(--border-medium)',
             fontSize: '14px',
             minHeight: '80px',
             resize: 'vertical',
-            fontFamily: 'inherit'
+            fontFamily: 'inherit',
+            background: 'var(--bg-input)',
+            color: 'var(--text-primary)',
+            borderRadius: '6px'
           }}
         />
         <div style={{ 
           textAlign: 'right', 
           fontSize: '12px', 
-          color: '#999',
+          color: 'var(--text-lighter)',
           marginTop: '4px'
         }}>
           {question.length}/200
@@ -148,7 +151,7 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
           marginBottom: '12px',
           fontSize: '12px',
           fontWeight: '500',
-          color: '#666'
+          color: 'var(--text-muted)'
         }}>
           Options
         </label>
@@ -167,9 +170,12 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
               style={{
                 flex: 1,
                 padding: '10px 12px',
-                border: '1px solid #e0e0e0',
+                border: '1px solid var(--border-medium)',
                 fontSize: '14px',
-                fontFamily: 'inherit'
+                fontFamily: 'inherit',
+                background: 'var(--bg-input)',
+                color: 'var(--text-primary)',
+                borderRadius: '6px'
               }}
             />
             {options.length > 2 && (
@@ -177,14 +183,15 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
                 onClick={() => removeOption(index)}
                 style={{
                   padding: '8px 12px',
-                  background: 'transparent',
-                  color: '#999',
-                  border: '1px solid #e0e0e0',
+                  background: 'var(--bg-button)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-medium)',
                   cursor: 'pointer',
                   fontSize: '18px',
                   lineHeight: '1',
                   minHeight: '44px',
                   minWidth: '44px',
+                  borderRadius: '6px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -200,13 +207,14 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
             onClick={addOption}
             style={{
               padding: '12px 20px',
-              background: 'transparent',
-              color: '#666',
-              border: '1px solid #e0e0e0',
+              background: 'var(--bg-button)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-medium)',
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: '500',
-              minHeight: '44px'
+              minHeight: '44px',
+              borderRadius: '6px'
             }}
           >
             Add option
@@ -300,11 +308,12 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
           padding: '16px',
           fontSize: '16px',
           fontWeight: '500',
-          background: (submitting || loading) ? '#e0e0e0' : '#1a1a1a',
-          color: (submitting || loading) ? '#999' : '#fff',
-          border: 'none',
+          background: (submitting || loading) ? 'var(--bg-card)' : 'var(--bg-button)',
+          color: (submitting || loading) ? 'var(--text-lighter)' : 'var(--text-primary)',
+          border: '1px solid var(--border-medium)',
           cursor: (submitting || loading) ? 'not-allowed' : 'pointer',
-          minHeight: '48px'
+          minHeight: '48px',
+          borderRadius: '6px'
         }}
       >
         {submitting || loading ? 'Creating...' : 'Create poll'}

@@ -46,10 +46,10 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: '#f8f9fa',
+        background: 'var(--bg-card)',
         textAlign: 'center'
       }}>
-        <p style={{ fontSize: '18px', color: '#666' }}>
+        <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
           No active polls available. Create a poll first!
         </p>
       </div>
@@ -65,7 +65,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
       <h2 style={{
         fontSize: '28px',
         marginBottom: '30px',
-        color: '#333'
+        color: 'var(--text-primary)'
       }}>
         Active Polls - Cast Your Vote
       </h2>
@@ -79,7 +79,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
             <div
               key={poll.id}
               style={{
-                background: '#f8f9fa',
+                background: 'var(--bg-card)',
                 padding: '24px',
                 marginBottom: '16px'
               }}
@@ -88,7 +88,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <h3 style={{
                   fontSize: '22px',
-                  color: '#333',
+                  color: 'var(--text-primary)',
                   fontWeight: '600',
                   margin: 0,
                   flex: 1
