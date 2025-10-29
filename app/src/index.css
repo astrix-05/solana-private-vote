@@ -2,35 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Minimalist Grey Theme Color Palette */
+/* Sleek Black & Grey Dark Theme Color Palette */
 :root {
   /* Background Colors */
-  --bg-primary: #F5F5F5;        /* Very light grey background */
-  --bg-secondary: #ECECEC;       /* Alternative light grey */
-  --bg-card: #CCCCCC;            /* Card backgrounds */
-  --bg-section: #B0B0B0;         /* Section containers */
-  --bg-button: #E0E0E0;          /* Button backgrounds */
-  --bg-input: #FAFAFA;           /* Input field backgrounds */
-  --bg-nav: #F0F0F0;             /* Navigation/header backgrounds */
+  --bg-primary: #111;            /* Pure black background */
+  --bg-secondary: #1a1a1a;       /* Softer dark background */
+  --bg-card: #222;               /* Card backgrounds */
+  --bg-section: #232323;         /* Section containers */
+  --bg-button: #232323;          /* Button backgrounds */
+  --bg-input: #191919;           /* Input field backgrounds */
+  --bg-nav: #191919;             /* Navigation/header backgrounds */
+  --bg-tooltip: #222;            /* Tooltip/dialog backgrounds */
   
   /* Text Colors */
-  --text-primary: #222;          /* Primary text (dark grey) */
-  --text-secondary: #333;        /* Alternative primary text */
-  --text-muted: #666;            /* Secondary/help text */
+  --text-primary: #ececec;       /* Main text (light grey) */
+  --text-secondary: #d0d0d0;     /* Alternative primary text */
+  --text-muted: #b0b0b0;         /* Secondary/help text */
   --text-light: #888;            /* Light text and icons */
-  --text-lighter: #999;          /* Even lighter text */
+  --text-lighter: #666;          /* Even lighter text */
   
   /* Accent Colors */
-  --accent-primary: #888;        /* Single accent grey for active states */
-  --accent-secondary: #666;      /* Secondary accent for icons */
+  --accent-primary: #444;        /* Active/hover states */
+  --accent-secondary: #555;      /* Secondary accent */
+  --accent-light: #ececec;       /* Light accent for icons */
   
   /* Borders and Lines */
-  --border-light: #DDD;          /* Subtle borders */
-  --border-medium: #CCC;         /* Medium borders */
-  --border-dark: #BBB;           /* Darker borders */
+  --border-light: #333;          /* Subtle borders */
+  --border-medium: #444;         /* Medium borders */
+  --border-dark: #383838;        /* Darker borders */
+  --border-input: #333;          /* Input borders */
   
   /* Shadows */
-  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-none: none;
 }
 
@@ -44,10 +47,29 @@
     padding: 0;
     background: var(--bg-primary);
     color: var(--text-primary);
+    min-height: 100vh;
   }
   
   * {
     box-sizing: border-box;
+  }
+  
+  /* Dark theme scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-primary);
   }
 }
 
@@ -65,7 +87,7 @@
   
   .btn-primary:hover {
     background: var(--accent-primary);
-    color: white;
+    border-color: var(--accent-secondary);
   }
   
   .btn-primary:active {
@@ -85,11 +107,12 @@
   
   .btn-secondary:hover {
     background: var(--bg-button);
+    border-color: var(--border-medium);
   }
   
   .btn-danger {
     background: var(--accent-secondary);
-    color: white;
+    color: var(--text-primary);
     border: 1px solid var(--accent-secondary);
     border-radius: 6px;
     font-weight: 500;
@@ -100,30 +123,36 @@
   
   .btn-danger:hover {
     background: var(--accent-primary);
+    border-color: var(--accent-primary);
   }
   
   .card {
     background: var(--bg-card);
     border: 1px solid var(--border-light);
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 16px;
     box-shadow: var(--shadow-subtle);
   }
   
   .input {
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border-medium);
+    padding: 10px 12px;
+    border: 1px solid var(--border-input);
     border-radius: 6px;
     background: var(--bg-input);
     color: var(--text-primary);
     font-size: 14px;
+    transition: all 0.2s ease;
   }
   
   .input:focus {
     outline: none;
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px rgba(136, 136, 136, 0.2);
+    box-shadow: 0 0 0 2px rgba(68, 68, 68, 0.2);
+  }
+  
+  .input::placeholder {
+    color: var(--text-muted);
   }
   
   .label {
@@ -141,7 +170,7 @@
   }
   
   .success {
-    color: var(--accent-primary);
+    color: var(--accent-light);
     font-size: 12px;
     margin-top: 4px;
   }

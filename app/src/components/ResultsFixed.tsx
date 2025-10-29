@@ -60,6 +60,9 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
         margin: '40px auto',
         padding: '40px',
         background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
@@ -81,6 +84,9 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
         margin: '40px auto',
         padding: '40px',
         background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
@@ -134,6 +140,9 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
               return (
                 <div key={poll.id} style={{
                   background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
                   padding: '24px',
                   marginBottom: '16px'
                 }}>
@@ -366,6 +375,9 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
               return (
                 <div key={poll.id} style={{
                   background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
                   padding: '24px',
                   marginBottom: '16px',
                   opacity: isExpired ? 0.7 : 1

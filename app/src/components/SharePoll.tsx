@@ -69,6 +69,9 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
     }}>
       <div style={{
         background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
         borderRadius: '12px',
         padding: '30px',
         maxWidth: '500px',
@@ -217,6 +220,9 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
               display: 'inline-block',
               padding: '16px',
               background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
               borderRadius: '8px',
               border: '1px solid #e0e0e0',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'

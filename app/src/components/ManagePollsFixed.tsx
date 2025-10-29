@@ -47,6 +47,9 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
         margin: '40px auto',
         padding: '40px',
         background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
@@ -98,6 +101,9 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
             key={poll.id}
             style={{
               background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
               padding: '24px',
               marginBottom: '16px',
               border: poll.isActive ? '2px solid #667eea' : '2px solid #e0e0e0'

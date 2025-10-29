@@ -47,6 +47,9 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
         margin: '40px auto',
         padding: '40px',
         background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: 'var(--text-muted)' }}>
@@ -80,6 +83,9 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
               key={poll.id}
               style={{
                 background: 'var(--bg-card)',
+        border: '1px solid var(--border-light)',
+        borderRadius: '8px',
+        boxShadow: 'var(--shadow-subtle)',
                 padding: '24px',
                 marginBottom: '16px'
               }}

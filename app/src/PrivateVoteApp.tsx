@@ -238,12 +238,13 @@ function PrivateVoteApp() {
   }, [createdPolls, isPollExpired]);
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
+        <div style={{
+          minHeight: '100vh',
           background: 'var(--bg-primary)',
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
           paddingLeft: isMobile ? '0' : '60px',
-          paddingBottom: isMobile ? '80px' : '0'
+          paddingBottom: isMobile ? '80px' : '0',
+          color: 'var(--text-primary)'
         }}>
       {/* Simplified Navigation */}
       <SimplifiedNavigation 
@@ -335,7 +336,8 @@ function PrivateVoteApp() {
           color: 'var(--text-primary)',
           fontSize: '14px',
           border: '1px solid var(--border-light)',
-          borderRadius: '6px'
+          borderRadius: '8px',
+          boxShadow: 'var(--shadow-subtle)'
         }}>
           {message}
         </div>
@@ -351,9 +353,10 @@ function PrivateVoteApp() {
           alignItems: 'center',
           gap: '8px',
           border: '1px solid var(--border-light)',
-          borderRadius: '6px'
+          borderRadius: '8px',
+          boxShadow: 'var(--shadow-subtle)'
         }}>
-          <span style={{ fontSize: '16px', color: 'var(--accent-primary)' }}>🎮</span>
+          <span style={{ fontSize: '16px', color: 'var(--accent-light)' }}>🎮</span>
           <div>
             <strong style={{ color: 'var(--text-primary)', fontSize: '14px' }}>Demo Mode</strong>
             <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '2px 0 0 0' }}>
@@ -368,14 +371,17 @@ function PrivateVoteApp() {
           }}
           style={{
               marginLeft: 'auto',
-              padding: '4px 8px',
+              padding: '6px 12px',
               background: 'var(--bg-button)',
               color: 'var(--text-primary)',
               border: '1px solid var(--border-medium)',
-              borderRadius: '4px',
+              borderRadius: '6px',
             cursor: 'pointer',
-              fontSize: '12px'
+              fontSize: '12px',
+              transition: 'all 0.2s ease'
           }}
+          onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = 'var(--accent-primary)'}
+          onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = 'var(--bg-button)'}
         >
             Exit Demo
         </button>
@@ -390,7 +396,8 @@ function PrivateVoteApp() {
             marginBottom: '24px',
             textAlign: 'center',
             border: '1px solid var(--border-light)',
-            borderRadius: '6px'
+            borderRadius: '8px',
+            boxShadow: 'var(--shadow-subtle)'
           }}>
             <h3 style={{
             fontSize: '16px',
@@ -411,15 +418,18 @@ function PrivateVoteApp() {
         <button
               onClick={connect}
           style={{
-                padding: '8px 16px',
+                padding: '10px 20px',
                 background: 'var(--bg-button)',
                 color: 'var(--text-primary)',
             border: '1px solid var(--border-medium)',
                 borderRadius: '6px',
             cursor: 'pointer',
                 fontSize: '14px',
-                fontWeight: '500'
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
           }}
+          onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = 'var(--accent-primary)'}
+          onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = 'var(--bg-button)'}
         >
               Connect Wallet
         </button>
@@ -434,7 +444,8 @@ function PrivateVoteApp() {
           background: 'var(--bg-card)',
           marginBottom: '32px',
           border: '1px solid var(--border-light)',
-          borderRadius: '6px'
+          borderRadius: '8px',
+          boxShadow: 'var(--shadow-subtle)'
         }}>
           <h3 style={{
             fontSize: '18px',
@@ -462,7 +473,8 @@ function PrivateVoteApp() {
               cursor: 'pointer',
               fontSize: '14px',
               fontWeight: '500',
-              borderRadius: '6px'
+              borderRadius: '6px',
+              transition: 'all 0.2s ease'
             }}
             onMouseOver={(e) => (e.target as HTMLButtonElement).style.background = 'var(--accent-primary)'}
             onMouseOut={(e) => (e.target as HTMLButtonElement).style.background = 'var(--bg-button)'}
