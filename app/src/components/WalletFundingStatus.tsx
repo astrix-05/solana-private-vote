@@ -101,30 +101,31 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
   }
 
   const getStatusColor = () => {
-    if (fundingStatus.isLow) return '#f44336'; // Red
-    if (fundingStatus.isWarning) return '#ff9800'; // Orange
-    return '#4caf50'; // Green
+    if (fundingStatus.isLow) return '#dc3545'; // Subtle red
+    if (fundingStatus.isWarning) return '#ffc107'; // Subtle yellow
+    return '#28a745'; // Subtle green
   };
 
   const getStatusText = () => {
-    if (fundingStatus.isLow) return 'CRITICAL';
-    if (fundingStatus.isWarning) return 'WARNING';
-    return 'HEALTHY';
+    if (fundingStatus.isLow) return 'Low Balance';
+    if (fundingStatus.isWarning) return 'Low Balance';
+    return 'Ready';
   };
 
   const getStatusIcon = () => {
-    if (fundingStatus.isLow) return '🚨';
-    if (fundingStatus.isWarning) return '⚠️';
-    return '✅';
+    if (fundingStatus.isLow) return '●';
+    if (fundingStatus.isWarning) return '●';
+    return '●';
   };
 
   return (
     <div style={{
-      padding: '12px',
+      padding: '16px',
       background: 'var(--bg-section)',
       border: `1px solid ${getStatusColor()}`,
-      borderRadius: '6px',
-      fontSize: '14px'
+      borderRadius: '8px',
+      fontSize: '14px',
+      boxShadow: 'var(--shadow-subtle)'
     }}>
       <div style={{
         display: 'flex',
@@ -185,34 +186,34 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
           
           {fundingStatus.isLow && (
             <div style={{
-              padding: '8px',
-              background: '#ffebee',
-              border: '1px solid #f44336',
-              borderRadius: '4px',
-              marginTop: '8px'
+              padding: '12px',
+              background: '#fff3cd',
+              border: '1px solid #ffc107',
+              borderRadius: '6px',
+              marginTop: '12px'
             }}>
-              <div style={{ color: '#c62828', fontWeight: '600', marginBottom: '4px' }}>
-                ⚠️ Low Balance Alert
+              <div style={{ color: '#856404', fontWeight: '500', marginBottom: '6px' }}>
+                Low Balance
               </div>
-              <div style={{ color: '#c62828', fontSize: '11px', marginBottom: '8px' }}>
-                The relayer wallet is critically low on SOL. This may cause vote failures.
+              <div style={{ color: '#856404', fontSize: '12px', marginBottom: '10px' }}>
+                The relayer wallet needs funding to process votes.
               </div>
               <button
                 onClick={handleForceFund}
                 disabled={refreshing}
                 style={{
-                  padding: '6px 12px',
-                  background: '#f44336',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
+                  padding: '8px 16px',
+                  background: 'var(--bg-button)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border-medium)',
+                  borderRadius: '6px',
                   cursor: 'pointer',
                   fontSize: '12px',
-                  fontWeight: '600',
+                  fontWeight: '500',
                   opacity: refreshing ? 0.6 : 1
                 }}
               >
-                {refreshing ? 'Funding...' : 'Fund Wallet Now'}
+                {refreshing ? 'Funding...' : 'Fund Wallet'}
               </button>
             </div>
           )}

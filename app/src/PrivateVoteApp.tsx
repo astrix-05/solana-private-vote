@@ -239,14 +239,15 @@ function PrivateVoteApp() {
   }, [createdPolls, isPollExpired]);
 
   return (
-        <div style={{
-          minHeight: '100vh',
-          background: 'var(--bg-primary)',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          paddingLeft: isMobile ? '0' : '60px',
-          paddingBottom: isMobile ? '80px' : '0',
-          color: 'var(--text-primary)'
-        }}>
+      <div style={{
+        minHeight: '100vh',
+        background: 'var(--bg-primary)',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        paddingLeft: isMobile ? '0' : '60px',
+        paddingBottom: isMobile ? '80px' : '0',
+        color: 'var(--text-primary)',
+        lineHeight: '1.6'
+      }}>
       {/* Simplified Navigation */}
       <SimplifiedNavigation 
         currentView={viewMode} 
@@ -266,28 +267,33 @@ function PrivateVoteApp() {
       {/* Header */}
         <div style={{ 
           textAlign: 'center', 
-          marginBottom: '24px',
-          padding: '16px 0'
+          marginBottom: '32px',
+          padding: '24px 0'
         }}>
           <h1 style={{ 
-            fontSize: isMobile ? '24px' : '28px',
+            fontSize: isMobile ? '28px' : '32px',
             fontWeight: '700',
-            color: '#1a1a1a',
-            margin: '0 0 4px 0'
+            color: 'var(--text-primary)',
+            margin: '0 0 8px 0',
+            lineHeight: '1.2'
           }}>
             Private Vote
         </h1>
-          <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '16px', margin: 0, lineHeight: '1.4' }}>
             Secure voting on Solana
           </p>
           
           {/* Wallet Status */}
           {connected && publicKey && (
             <div style={{
-              marginTop: '8px',
+              marginTop: '12px',
               display: 'inline-block',
-              fontSize: '12px',
-              color: '#666'
+              fontSize: '14px',
+              color: 'var(--text-muted)',
+              padding: '6px 12px',
+              background: 'var(--bg-secondary)',
+              borderRadius: '6px',
+              border: '1px solid var(--border-light)'
             }}>
               Connected: {publicKey.slice(0, 4)}...{publicKey.slice(-4)}
             </div>
@@ -516,10 +522,13 @@ function PrivateVoteApp() {
       ) : (
         <div style={{
           textAlign: 'center',
-          padding: '48px 16px',
-          color: 'var(--text-lighter)'
+          padding: '64px 24px',
+          color: 'var(--text-muted)',
+          background: 'var(--bg-secondary)',
+          borderRadius: '12px',
+          border: '1px solid var(--border-light)'
         }}>
-          <p style={{ fontSize: '14px', margin: 0 }}>
+          <p style={{ fontSize: '16px', margin: 0, lineHeight: '1.5' }}>
             No polls created yet. Click "Create" to get started.
           </p>
         </div>
