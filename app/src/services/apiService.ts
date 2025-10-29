@@ -14,6 +14,12 @@ export interface VoteResponse {
   transactionSignature?: string;
   blockchainConfirmed?: boolean;
   error?: string;
+  feePaidBy?: string;
+  voterIdentity?: any;
+  rateLimitInfo?: {
+    remainingVotes: number;
+    resetTime: string;
+  };
 }
 
 export interface CreatePollRequest {
@@ -211,6 +217,11 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ action })
     });
+  }
+
+  // Get voter statistics and rate limit status
+  async getVoterStats(voterAddress: string): Promise<{ success: boolean; voterAddress: string; identity: any; rateLimit: any; feeInfo: any; error?: string }> {
+    return this.makeRequest<{ success: boolean; voterAddress: string; identity: any; rateLimit: any; feeInfo: any; error?: string }>(`/voter/${voterAddress}/stats`);
   }
 }
 

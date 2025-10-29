@@ -277,6 +277,18 @@ router.post('/wallet/funding/monitoring',
   pollController.toggleFundingMonitoring
 );
 
+// Get voter statistics and rate limit status
+router.get('/voter/:voterAddress/stats',
+  apiKeyMiddleware,
+  [
+    param('voterAddress')
+      .isLength({ min: 32, max: 44 })
+      .withMessage('Invalid voter address format')
+  ],
+  handleValidationErrors,
+  pollController.getVoterStats
+);
+
 // Health check route (no API key required)
 router.get('/health',
   pollController.healthCheck

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CountdownTimer from './CountdownTimer';
+import VoterStats from './VoterStats';
 import apiService, { VoteRequest, VoteResponse } from '../services/apiService';
 
 interface VotePollFixedProps {
@@ -142,6 +143,11 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
       }}>
         Active Polls - Cast Your Vote
       </h2>
+
+      {/* Voter Stats - Show when connected */}
+      {voterPublicKey && !isDemoMode && (
+        <VoterStats voterAddress={voterPublicKey} showDetails={true} />
+      )}
 
       <div style={{ display: 'grid', gap: '25px' }}>
         {polls.map((poll) => {
@@ -331,9 +337,19 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
                           Transaction: {voteConfirmation.transactionSignature.slice(0, 8)}...{voteConfirmation.transactionSignature.slice(-8)}
                         </div>
                       )}
-                      <div style={{ color: 'var(--text-muted)' }}>
+                      <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
                         Blockchain: {voteConfirmation.blockchainConfirmed ? '✅ Confirmed' : '⚠️ Local Only'}
                       </div>
+                      {voteConfirmation.feePaidBy && (
+                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
+                          💰 Fee paid by: {voteConfirmation.feePaidBy}
+                        </div>
+                      )}
+                      {voteConfirmation.rateLimitInfo && (
+                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
+                          ⏱️ Remaining votes: {voteConfirmation.rateLimitInfo.remainingVotes}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -9,6 +9,69 @@ class PollService {
     this.connection = solanaConfig.connection;
     this.governmentWallet = solanaConfig.governmentWallet;
     this.polls = new Map(); // In-memory storage for demo
+    this.voterRateLimit = new Map(); // Track voter activity for rate limiting
+    this.voterIdentities = new Map(); // Track voter identity verification
+  }
+
+  // Rate limiting: Check if voter has exceeded voting frequency
+  checkVoterRateLimit(voterAddress) {
+    const now = Date.now();
+    const voterKey = voterAddress.toLowerCase();
+    
+    if (!this.voterRateLimit.has(voterKey)) {
+      this.voterRateLimit.set(voterKey, []);
+    }
+    
+    const voterHistory = this.voterRateLimit.get(voterKey);
+    
+    // Remove votes older than 1 hour
+    const oneHourAgo = now - (60 * 60 * 1000);
+    const recentVotes = voterHistory.filter(timestamp => timestamp > oneHourAgo);
+    this.voterRateLimit.set(voterKey, recentVotes);
+    
+    // Allow maximum 10 votes per hour per address
+    const maxVotesPerHour = 10;
+    if (recentVotes.length >= maxVotesPerHour) {
+      return {
+        allowed: false,
+        message: `Rate limit exceeded. Maximum ${maxVotesPerHour} votes per hour allowed.`,
+        retryAfter: Math.ceil((recentVotes[0] + (60 * 60 * 1000) - now) / 1000)
+      };
+    }
+    
+    return { allowed: true };
+  }
+
+  // Verify voter identity (basic verification)
+  verifyVoterIdentity(voterAddress) {
+    const voterKey = voterAddress.toLowerCase();
+    
+    // Check if address is a valid Solana public key
+    try {
+      new PublicKey(voterAddress);
+    } catch (error) {
+      return {
+        verified: false,
+        message: 'Invalid voter address format'
+      };
+    }
+    
+    // Basic identity verification - in production, this could be enhanced
+    // with additional checks like signature verification, KYC, etc.
+    if (!this.voterIdentities.has(voterKey)) {
+      this.voterIdentities.set(voterKey, {
+        address: voterAddress,
+        firstSeen: new Date(),
+        verifiedAt: new Date(),
+        verificationMethod: 'basic_address_validation'
+      });
+    }
+    
+    return {
+      verified: true,
+      message: 'Voter identity verified',
+      identity: this.voterIdentities.get(voterKey)
+    };
   }
 
   // Create a new poll
@@ -89,6 +152,18 @@ class PollService {
         throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
       }
 
+      // Verify voter identity
+      const identityCheck = this.verifyVoterIdentity(voteData.voterAddress);
+      if (!identityCheck.verified) {
+        throw new Error(`Identity verification failed: ${identityCheck.message}`);
+      }
+
+      // Check rate limiting
+      const rateLimitCheck = this.checkVoterRateLimit(voteData.voterAddress);
+      if (!rateLimitCheck.allowed) {
+        throw new Error(`Rate limit exceeded: ${rateLimitCheck.message}. Retry after ${rateLimitCheck.retryAfter} seconds.`);
+      }
+
       const poll = this.polls.get(voteData.pollId);
       if (!poll) {
         throw new Error('Poll not found');
@@ -113,11 +188,19 @@ class PollService {
         throw new Error('Invalid option index');
       }
 
-      // Record vote
+      // Record vote with timestamp for rate limiting
+      const now = Date.now();
       poll.votes.set(voteData.voterAddress, voteData.optionIndex);
       poll.voteCounts[voteData.optionIndex]++;
+      
+      // Update rate limiting tracking
+      const voterKey = voteData.voterAddress.toLowerCase();
+      if (!this.voterRateLimit.has(voterKey)) {
+        this.voterRateLimit.set(voterKey, []);
+      }
+      this.voterRateLimit.get(voterKey).push(now);
 
-      logger.info(`Vote submitted: Poll ${voteData.pollId}, Option ${voteData.optionIndex}, Voter ${voteData.voterAddress}`);
+      logger.info(`Vote submitted: Poll ${voteData.pollId}, Option ${voteData.optionIndex}, Voter ${voteData.voterAddress}, Identity: ${identityCheck.identity.verificationMethod}`);
 
       // Submit vote to Solana blockchain
       try {
@@ -135,7 +218,13 @@ class PollService {
           success: true,
           message: 'Vote submitted successfully',
           transactionSignature: txResult.signature,
-          blockchainConfirmed: true
+          blockchainConfirmed: true,
+          feePaidBy: 'government',
+          voterIdentity: identityCheck.identity,
+          rateLimitInfo: {
+            remainingVotes: 10 - this.voterRateLimit.get(voterKey).length,
+            resetTime: new Date(now + (60 * 60 * 1000)).toISOString()
+          }
         };
         
       } catch (txError) {
@@ -146,7 +235,13 @@ class PollService {
           success: true,
           message: 'Vote recorded locally, but blockchain submission failed',
           error: txError.message,
-          blockchainConfirmed: false
+          blockchainConfirmed: false,
+          feePaidBy: 'government',
+          voterIdentity: identityCheck.identity,
+          rateLimitInfo: {
+            remainingVotes: 10 - this.voterRateLimit.get(voterKey).length,
+            resetTime: new Date(now + (60 * 60 * 1000)).toISOString()
+          }
         };
       }
 
@@ -303,6 +398,36 @@ class PollService {
       logger.error('Error getting government wallet info:', error);
       throw error;
     }
+  }
+
+  // Get voter statistics and rate limit status
+  getVoterStats(voterAddress) {
+    const voterKey = voterAddress.toLowerCase();
+    const now = Date.now();
+    
+    // Get rate limit info
+    const voterHistory = this.voterRateLimit.get(voterKey) || [];
+    const oneHourAgo = now - (60 * 60 * 1000);
+    const recentVotes = voterHistory.filter(timestamp => timestamp > oneHourAgo);
+    
+    // Get identity info
+    const identity = this.voterIdentities.get(voterKey);
+    
+    return {
+      success: true,
+      voterAddress: voterAddress,
+      identity: identity || null,
+      rateLimit: {
+        votesInLastHour: recentVotes.length,
+        maxVotesPerHour: 10,
+        remainingVotes: Math.max(0, 10 - recentVotes.length),
+        resetTime: recentVotes.length > 0 ? new Date(recentVotes[0] + (60 * 60 * 1000)).toISOString() : null
+      },
+      feeInfo: {
+        paidBy: 'government',
+        description: 'All transaction fees are covered by the government relayer wallet'
+      }
+    };
   }
 }
 

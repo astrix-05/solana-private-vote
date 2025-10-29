@@ -460,6 +460,38 @@ class PollController {
       });
     }
   }
+
+  // Get voter statistics and rate limit status
+  async getVoterStats(req, res) {
+    try {
+      const { voterAddress } = req.params;
+
+      if (!voterAddress) {
+        return res.status(400).json({
+          success: false,
+          error: 'Voter address is required'
+        });
+      }
+
+      // Validate voter address
+      if (!SecurityUtils.validateWalletAddress(voterAddress)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid voter wallet address'
+        });
+      }
+
+      const result = pollService.getVoterStats(voterAddress);
+      res.json(result);
+
+    } catch (error) {
+      logger.error('Get voter stats error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new PollController();
