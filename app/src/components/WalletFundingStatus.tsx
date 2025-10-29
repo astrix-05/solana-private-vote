@@ -120,12 +120,12 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
 
   return (
     <div style={{
-      padding: '16px',
-      background: 'var(--bg-section)',
+      padding: 'var(--space-card)',
+      background: 'var(--bg-card)',
       border: `1px solid ${getStatusColor()}`,
-      borderRadius: '8px',
+      borderRadius: 'var(--radius-card)',
       fontSize: '14px',
-      boxShadow: 'var(--shadow-subtle)'
+      boxShadow: 'var(--shadow-card)'
     }}>
       <div style={{
         display: 'flex',
@@ -155,9 +155,9 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
             disabled={refreshing}
             style={{
               padding: '4px 8px',
-              background: 'var(--bg-button)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-medium)',
+              background: 'var(--button-bg)',
+              color: 'var(--text-main)',
+              border: '1px solid var(--button-border)',
               borderRadius: '4px',
               cursor: 'pointer',
               fontSize: '12px',
@@ -203,9 +203,9 @@ const WalletFundingStatus: React.FC<WalletFundingStatusProps> = ({ showDetails =
                 disabled={refreshing}
                 style={{
                   padding: '8px 16px',
-                  background: 'var(--bg-button)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--border-medium)',
+                  background: 'var(--button-bg)',
+                  color: 'var(--text-main)',
+                  border: '1px solid var(--button-border)',
                   borderRadius: '6px',
                   cursor: 'pointer',
                   fontSize: '12px',

@@ -241,11 +241,11 @@ function PrivateVoteApp() {
   return (
       <div style={{
         minHeight: '100vh',
-        background: 'var(--bg-primary)',
+        background: 'var(--bg-main)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
         paddingLeft: isMobile ? '0' : '60px',
         paddingBottom: isMobile ? '80px' : '0',
-        color: 'var(--text-primary)',
+        color: 'var(--text-main)',
         lineHeight: '1.6'
       }}>
       {/* Simplified Navigation */}
@@ -273,7 +273,7 @@ function PrivateVoteApp() {
           <h1 style={{ 
             fontSize: isMobile ? '28px' : '32px',
             fontWeight: '700',
-            color: 'var(--text-primary)',
+            color: 'var(--text-main)',
             margin: '0 0 8px 0',
             lineHeight: '1.2'
           }}>
@@ -291,9 +291,9 @@ function PrivateVoteApp() {
               fontSize: '14px',
               color: 'var(--text-muted)',
               padding: '6px 12px',
-              background: 'var(--bg-secondary)',
+              background: 'var(--bg-card)',
               borderRadius: '6px',
-              border: '1px solid var(--border-light)'
+              border: '1px solid var(--border-grey)'
             }}>
               Connected: {publicKey.slice(0, 4)}...{publicKey.slice(-4)}
             </div>
@@ -524,9 +524,10 @@ function PrivateVoteApp() {
           textAlign: 'center',
           padding: '64px 24px',
           color: 'var(--text-muted)',
-          background: 'var(--bg-secondary)',
-          borderRadius: '12px',
-          border: '1px solid var(--border-light)'
+          background: 'var(--bg-card)',
+          borderRadius: 'var(--radius-card)',
+          border: '1px solid var(--border-grey)',
+          boxShadow: 'var(--shadow-card)'
         }}>
           <p style={{ fontSize: '16px', margin: 0, lineHeight: '1.5' }}>
             No polls created yet. Click "Create" to get started.
