@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
+import apiService, { CreatePollRequest, CreatePollResponse } from '../services/apiService';
 
 interface CreatePollFixedProps {
   onSubmit: (pollData: { question: string; options: string[]; expiryDate?: number; isAnonymous?: boolean }) => Promise<void>;
   loading?: boolean;
+  creatorPublicKey?: string;
+  isDemoMode?: boolean;
 }
 
-const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) => {
+const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading, creatorPublicKey, isDemoMode = false }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
   const [expiryDateTime, setExpiryDateTime] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [pollCreationResult, setPollCreationResult] = useState<CreatePollResponse | null>(null);
 
   const validateAndSubmit = async () => {
     setError('');
@@ -62,15 +66,66 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
 
     // Submit if valid
     setSubmitting(true);
+    setPollCreationResult(null);
+    
     try {
-      await onSubmit({ question: question.trim(), options: validOptions, expiryDate, isAnonymous });
+      if (isDemoMode || !creatorPublicKey) {
+        // Demo mode - just call the local onSubmit
+        await onSubmit({ question: question.trim(), options: validOptions, expiryDate, isAnonymous });
+        
+        setPollCreationResult({
+          success: true,
+          pollId: Date.now().toString(),
+          poll: {
+            id: Date.now().toString(),
+            question: question.trim(),
+            options: validOptions,
+            creator: creatorPublicKey || 'demo',
+            isActive: true,
+            isAnonymous,
+            expiryDate: expiryDate ? new Date(expiryDate).toISOString() : undefined,
+            createdAt: new Date().toISOString(),
+            voteCounts: new Array(validOptions.length).fill(0)
+          },
+          message: 'Demo poll created locally',
+          blockchainConfirmed: false
+        });
+      } else {
+        // Real poll creation - use relayer
+        const pollRequest: CreatePollRequest = {
+          question: question.trim(),
+          options: validOptions,
+          creator: creatorPublicKey,
+          isAnonymous,
+          expiryDate: expiryDate ? new Date(expiryDate).toISOString() : undefined
+        };
+
+        const response = await apiService.createPoll(pollRequest);
+        
+        if (response.success) {
+          // Also call local onSubmit for UI state management
+          await onSubmit({ question: question.trim(), options: validOptions, expiryDate, isAnonymous });
+          
+          setPollCreationResult(response);
+        } else {
+          throw new Error(response.error || 'Failed to create poll');
+        }
+      }
+      
       // Clear form on success
       setQuestion('');
       setOptions(['', '']);
       setExpiryDateTime('');
       setIsAnonymous(false);
     } catch (error) {
-      setError('Failed to create poll. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to create poll. Please try again.');
+      setPollCreationResult({
+        success: false,
+        pollId: '',
+        poll: null,
+        message: error instanceof Error ? error.message : 'Failed to create poll',
+        blockchainConfirmed: false
+      });
     } finally {
       setSubmitting(false);
     }
@@ -318,6 +373,38 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
       >
         {submitting || loading ? 'Creating...' : 'Create poll'}
       </button>
+
+      {/* Poll Creation Confirmation */}
+      {pollCreationResult && (
+        <div style={{
+          marginTop: '20px',
+          padding: '16px',
+          background: pollCreationResult.success ? 'var(--bg-section)' : '#ffebee',
+          border: '1px solid var(--border-light)',
+          borderRadius: '8px',
+          fontSize: '14px'
+        }}>
+          <div style={{ marginBottom: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>
+            Poll Creation {pollCreationResult.success ? '✅ Success' : '❌ Failed'}:
+          </div>
+          <div style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>
+            Message: {pollCreationResult.message}
+          </div>
+          {pollCreationResult.pollId && (
+            <div style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>
+              Poll ID: {pollCreationResult.pollId}
+            </div>
+          )}
+          {pollCreationResult.transactionSignature && (
+            <div style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>
+              Transaction: {pollCreationResult.transactionSignature.slice(0, 8)}...{pollCreationResult.transactionSignature.slice(-8)}
+            </div>
+          )}
+          <div style={{ color: 'var(--text-muted)' }}>
+            Blockchain: {pollCreationResult.blockchainConfirmed ? '✅ Confirmed' : '⚠️ Local Only'}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

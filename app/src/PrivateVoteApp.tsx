@@ -486,9 +486,19 @@ function PrivateVoteApp() {
 
       {/* Content Area */}
       {viewMode === 'create' ? (
-        <CreatePollFixed onSubmit={handleCreatePoll} loading={loading} />
+        <CreatePollFixed 
+          onSubmit={handleCreatePoll} 
+          loading={loading}
+          creatorPublicKey={publicKey?.toString()}
+          isDemoMode={isDemoMode}
+        />
       ) : viewMode === 'vote' ? (
-        <VotePollFixed polls={activePollsForVoting} onVote={handleVote} isDemoMode={isDemoMode} />
+        <VotePollFixed 
+          polls={activePollsForVoting} 
+          onVote={handleVote} 
+          isDemoMode={isDemoMode}
+          voterPublicKey={publicKey?.toString()}
+        />
       ) : viewMode === 'manage' && createdPolls.length > 0 ? (
         <ManagePollsFixed 
           polls={createdPolls.filter(poll => poll.creator === publicKey)} 

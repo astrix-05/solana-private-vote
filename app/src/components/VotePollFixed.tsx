@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CountdownTimer from './CountdownTimer';
+import apiService, { VoteRequest, VoteResponse } from '../services/apiService';
 
 interface VotePollFixedProps {
   polls: Array<{
@@ -11,11 +12,14 @@ interface VotePollFixedProps {
   }>;
   onVote: (pollId: number, optionIndex: number) => void;
   isDemoMode?: boolean;
+  voterPublicKey?: string;
 }
 
-const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode = false }) => {
+const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode = false, voterPublicKey }) => {
   const [selectedOptions, setSelectedOptions] = useState<{ [pollId: number]: number | null }>({});
   const [votedPolls, setVotedPolls] = useState<{ [pollId: number]: number }>({});
+  const [votingStates, setVotingStates] = useState<{ [pollId: number]: 'idle' | 'voting' | 'success' | 'error' }>({});
+  const [voteConfirmations, setVoteConfirmations] = useState<{ [pollId: number]: VoteResponse }>({});
 
   const handleOptionSelect = (pollId: number, optionIndex: number) => {
     setSelectedOptions(prev => ({
@@ -24,15 +28,81 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
     }));
   };
 
-  const handleSubmitVote = (pollId: number) => {
+  const handleSubmitVote = async (pollId: number) => {
     const selectedOption = selectedOptions[pollId];
-    if (selectedOption !== undefined && selectedOption !== null) {
-      onVote(pollId, selectedOption);
-      setVotedPolls(prev => ({
+    if (selectedOption === undefined || selectedOption === null) return;
+
+    // Set voting state
+    setVotingStates(prev => ({
+      ...prev,
+      [pollId]: 'voting'
+    }));
+
+    try {
+      if (isDemoMode || !voterPublicKey) {
+        // Demo mode - just call the local onVote
+        onVote(pollId, selectedOption);
+        setVotedPolls(prev => ({
+          ...prev,
+          [pollId]: selectedOption
+        }));
+        setVotingStates(prev => ({
+          ...prev,
+          [pollId]: 'success'
+        }));
+        setVoteConfirmations(prev => ({
+          ...prev,
+          [pollId]: {
+            success: true,
+            message: 'Demo vote recorded locally',
+            blockchainConfirmed: false
+          }
+        }));
+      } else {
+        // Real voting - use relayer
+        const voteRequest: VoteRequest = {
+          voterPublicKey,
+          pollId: pollId.toString(),
+          voteChoice: selectedOption
+        };
+
+        const response = await apiService.vote(voteRequest);
+        
+        if (response.success) {
+          // Update local state
+          onVote(pollId, selectedOption);
+          setVotedPolls(prev => ({
+            ...prev,
+            [pollId]: selectedOption
+          }));
+          setVotingStates(prev => ({
+            ...prev,
+            [pollId]: 'success'
+          }));
+          setVoteConfirmations(prev => ({
+            ...prev,
+            [pollId]: response
+          }));
+        } else {
+          throw new Error(response.message || 'Vote failed');
+        }
+      }
+    } catch (error) {
+      console.error('Vote submission error:', error);
+      setVotingStates(prev => ({
         ...prev,
-        [pollId]: selectedOption
+        [pollId]: 'error'
       }));
-      // Clear selection after voting
+      setVoteConfirmations(prev => ({
+        ...prev,
+        [pollId]: {
+          success: false,
+          message: error instanceof Error ? error.message : 'Vote failed',
+          blockchainConfirmed: false
+        }
+      }));
+    } finally {
+      // Clear selection after voting attempt
       setSelectedOptions(prev => ({
         ...prev,
         [pollId]: null
@@ -77,6 +147,8 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
         {polls.map((poll) => {
           const hasVoted = votedPolls[poll.id] !== undefined;
           const selectedOption = selectedOptions[poll.id];
+          const votingState = votingStates[poll.id] || 'idle';
+          const voteConfirmation = voteConfirmations[poll.id];
 
           return (
             <div
@@ -196,37 +268,74 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
               {!hasVoted ? (
                 <button
                   onClick={() => handleSubmitVote(poll.id)}
-                  disabled={selectedOption === undefined || selectedOption === null}
+                  disabled={selectedOption === undefined || selectedOption === null || votingState === 'voting'}
                   style={{
                     width: '100%',
                     padding: '16px',
                     fontSize: '16px',
                     fontWeight: '600',
-                    background: selectedOption !== null && selectedOption !== undefined
+                    background: votingState === 'voting'
+                      ? '#ccc'
+                      : selectedOption !== null && selectedOption !== undefined
                       ? '#667eea'
                       : '#ccc',
                     color: 'white',
                     border: 'none',
-                    cursor: selectedOption !== null && selectedOption !== undefined
-                      ? 'pointer'
-                      : 'not-allowed',
-                    minHeight: '48px'
+                    cursor: votingState === 'voting' || (selectedOption === null || selectedOption === undefined)
+                      ? 'not-allowed'
+                      : 'pointer',
+                    minHeight: '48px',
+                    opacity: votingState === 'voting' ? 0.7 : 1
                   }}
                 >
-                  {selectedOption !== null && selectedOption !== undefined
+                  {votingState === 'voting'
+                    ? 'Submitting Vote...'
+                    : selectedOption !== null && selectedOption !== undefined
                     ? 'Cast Your Vote'
                     : 'Select an option first'}
                 </button>
               ) : (
-                <div style={{
-                  padding: '12px',
-                  background: '#e8f5e9',
-                  color: '#2e7d32',
-                  textAlign: 'center',
-                  fontSize: '16px',
-                  fontWeight: '600'
-                }}>
-                  ✓ You voted for: "{poll.options[votedPolls[poll.id]]}"
+                <div>
+                  <div style={{
+                    padding: '12px',
+                    background: voteConfirmation?.success ? '#e8f5e9' : '#ffebee',
+                    color: voteConfirmation?.success ? '#2e7d32' : '#c62828',
+                    textAlign: 'center',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    marginBottom: '8px'
+                  }}>
+                    ✓ You voted for: "{poll.options[votedPolls[poll.id]]}"
+                  </div>
+                  
+                  {/* Vote Confirmation Details */}
+                  {voteConfirmation && (
+                    <div style={{
+                      padding: '12px',
+                      background: 'var(--bg-section)',
+                      border: '1px solid var(--border-light)',
+                      borderRadius: '6px',
+                      fontSize: '14px'
+                    }}>
+                      <div style={{ marginBottom: '8px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        Vote Confirmation:
+                      </div>
+                      <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
+                        Status: {voteConfirmation.success ? '✅ Success' : '❌ Failed'}
+                      </div>
+                      <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
+                        Message: {voteConfirmation.message}
+                      </div>
+                      {voteConfirmation.transactionSignature && (
+                        <div style={{ color: 'var(--text-muted)', marginBottom: '4px' }}>
+                          Transaction: {voteConfirmation.transactionSignature.slice(0, 8)}...{voteConfirmation.transactionSignature.slice(-8)}
+                        </div>
+                      )}
+                      <div style={{ color: 'var(--text-muted)' }}>
+                        Blockchain: {voteConfirmation.blockchainConfirmed ? '✅ Confirmed' : '⚠️ Local Only'}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
