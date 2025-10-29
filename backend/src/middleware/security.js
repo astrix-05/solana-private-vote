@@ -64,7 +64,7 @@ const sanitizeInput = (req, res, next) => {
   const sanitizeObject = (obj) => {
     for (const key in obj) {
       if (typeof obj[key] === 'string') {
-        obj[key] = SecurityUtils.constructor.sanitizeInput(obj[key]);
+        obj[key] = SecurityUtils.sanitizeInput(obj[key]);
       } else if (typeof obj[key] === 'object' && obj[key] !== null) {
         sanitizeObject(obj[key]);
       }

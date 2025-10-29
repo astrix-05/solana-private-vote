@@ -82,6 +82,44 @@ class PollController {
     }
   }
 
+  // Submit vote via direct endpoint
+  async submitVoteDirect(req, res) {
+    try {
+      const { voterPublicKey, pollId, voteChoice } = req.body;
+
+      // Validate required fields
+      if (!voterPublicKey || !pollId || voteChoice === undefined) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: voterPublicKey, pollId, voteChoice'
+        });
+      }
+
+      // Validate voter public key
+      if (!SecurityUtils.validateWalletAddress(voterPublicKey)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid voter public key format'
+        });
+      }
+
+      const result = await pollService.submitVote({
+        pollId,
+        optionIndex: parseInt(voteChoice),
+        voterAddress: voterPublicKey
+      });
+
+      res.json(result);
+
+    } catch (error) {
+      logger.error('Submit vote direct error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  }
+
   // Get poll details
   async getPoll(req, res) {
     try {

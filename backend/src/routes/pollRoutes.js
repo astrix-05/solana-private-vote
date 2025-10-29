@@ -109,6 +109,25 @@ router.post('/polls/:pollId/vote',
   pollController.submitVote
 );
 
+// Dedicated vote endpoint
+router.post('/vote',
+  voteLimiter,
+  apiKeyMiddleware,
+  [
+    body('voterPublicKey')
+      .isLength({ min: 32, max: 44 })
+      .withMessage('Invalid voter public key format'),
+    body('pollId')
+      .isLength({ min: 16, max: 32 })
+      .withMessage('Invalid poll ID format'),
+    body('voteChoice')
+      .isInt({ min: 0 })
+      .withMessage('Vote choice must be a non-negative integer')
+  ],
+  handleValidationErrors,
+  pollController.submitVoteDirect
+);
+
 // Get poll details route
 router.get('/polls/:pollId',
   apiKeyMiddleware,
