@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 
 interface CreatePollFixedProps {
-  onSubmit: (pollData: { question: string; options: string[] }) => Promise<void>;
+  onSubmit: (pollData: { question: string; options: string[]; expiryDate?: number; isAnonymous?: boolean }) => Promise<void>;
   loading?: boolean;
 }
 
 const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) => {
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState(['', '']);
+  const [expiryDateTime, setExpiryDateTime] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,13 +45,30 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
       }
     }
 
+    // Parse expiry date
+    let expiryDate: number | undefined;
+    if (expiryDateTime) {
+      const expiry = new Date(expiryDateTime).getTime();
+      if (isNaN(expiry)) {
+        setError('Invalid date/time format');
+        return;
+      }
+      if (expiry <= Date.now()) {
+        setError('Expiry date must be in the future');
+        return;
+      }
+      expiryDate = expiry;
+    }
+
     // Submit if valid
     setSubmitting(true);
     try {
-      await onSubmit({ question: question.trim(), options: validOptions });
+      await onSubmit({ question: question.trim(), options: validOptions, expiryDate, isAnonymous });
       // Clear form on success
       setQuestion('');
       setOptions(['', '']);
+      setExpiryDateTime('');
+      setIsAnonymous(false);
     } catch (error) {
       setError('Failed to create poll. Please try again.');
     } finally {
@@ -76,50 +95,45 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
   };
 
   return (
-    <div style={{
-      maxWidth: '600px',
-      margin: '40px auto',
-      padding: '30px',
-      background: 'white',
-      borderRadius: '15px',
-      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-    }}>
+    <div style={{ maxWidth: '640px' }}>
       <h2 style={{ 
-        fontSize: '28px', 
-        marginBottom: '20px',
-        color: '#333'
+        fontSize: '24px', 
+        fontWeight: '700',
+        margin: '0 0 8px 0',
+        color: '#1a1a1a'
       }}>
-        Create New Poll
+        New Poll
       </h2>
 
       {/* Question Input */}
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <label style={{ 
           display: 'block', 
           marginBottom: '8px',
-          fontWeight: '600',
-          color: '#555'
+          fontSize: '12px',
+          fontWeight: '500',
+          color: '#666'
         }}>
-          Poll Question *
+          Question
         </label>
         <textarea
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="What would you like to ask your voters?"
+          placeholder="Enter your question..."
           maxLength={200}
           style={{
             width: '100%',
             padding: '12px',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            fontSize: '16px',
-            minHeight: '100px',
-            resize: 'vertical'
+            border: '1px solid #e0e0e0',
+            fontSize: '14px',
+            minHeight: '80px',
+            resize: 'vertical',
+            fontFamily: 'inherit'
           }}
         />
         <div style={{ 
           textAlign: 'right', 
-          fontSize: '14px', 
+          fontSize: '12px', 
           color: '#999',
           marginTop: '4px'
         }}>
@@ -128,20 +142,21 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
       </div>
 
       {/* Options */}
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <label style={{ 
           display: 'block', 
           marginBottom: '12px',
-          fontWeight: '600',
-          color: '#555'
+          fontSize: '12px',
+          fontWeight: '500',
+          color: '#666'
         }}>
-          Voting Options *
+          Options
         </label>
         {options.map((option, index) => (
           <div key={index} style={{ 
             display: 'flex', 
-            gap: '10px',
-            marginBottom: '10px'
+            gap: '8px',
+            marginBottom: '8px'
           }}>
             <input
               type="text"
@@ -151,23 +166,28 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
               maxLength={100}
               style={{
                 flex: 1,
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '15px'
+                padding: '10px 12px',
+                border: '1px solid #e0e0e0',
+                fontSize: '14px',
+                fontFamily: 'inherit'
               }}
             />
             {options.length > 2 && (
               <button
                 onClick={() => removeOption(index)}
                 style={{
-                  padding: '10px 15px',
-                  background: '#ff4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  background: 'transparent',
+                  color: '#999',
+                  border: '1px solid #e0e0e0',
                   cursor: 'pointer',
-                  fontSize: '18px'
+                  fontSize: '18px',
+                  lineHeight: '1',
+                  minHeight: '44px',
+                  minWidth: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
                 ×
@@ -179,30 +199,95 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
           <button
             onClick={addOption}
             style={{
-              padding: '8px 16px',
-              background: '#667eea',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
+              padding: '12px 20px',
+              background: 'transparent',
+              color: '#666',
+              border: '1px solid #e0e0e0',
               cursor: 'pointer',
-              fontSize: '14px'
+              fontSize: '14px',
+              fontWeight: '500',
+              minHeight: '44px'
             }}
           >
-            + Add Option
+            Add option
           </button>
         )}
       </div>
 
+      {/* Advanced Options - Collapsed by default */}
+      <details style={{ marginBottom: '24px' }}>
+        <summary style={{ 
+          fontSize: '12px',
+          fontWeight: '500',
+          color: '#666',
+          cursor: 'pointer',
+          marginBottom: '12px'
+        }}>
+          Advanced Options
+        </summary>
+        
+        {/* Expiry Date */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ 
+            display: 'block', 
+            marginBottom: '8px',
+            fontSize: '12px',
+            fontWeight: '500',
+            color: '#666'
+          }}>
+            Expiry Date (optional)
+          </label>
+          <input
+            type="datetime-local"
+            value={expiryDateTime}
+            onChange={(e) => setExpiryDateTime(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid #e0e0e0',
+              fontSize: '14px',
+              fontFamily: 'inherit'
+            }}
+          />
+        </div>
+
+        {/* Anonymous Voting Toggle */}
+        <div style={{ marginBottom: '16px' }}>
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '12px',
+            fontWeight: '500',
+            color: '#666',
+            cursor: 'pointer'
+          }}>
+            <input
+              type="checkbox"
+              checked={isAnonymous}
+              onChange={(e) => setIsAnonymous(e.target.checked)}
+              style={{
+                width: '16px',
+                height: '16px',
+                cursor: 'pointer'
+              }}
+            />
+            <span>Anonymous voting</span>
+          </label>
+        </div>
+      </details>
+
       {/* Error Message */}
       {error && (
         <div style={{
-          padding: '12px',
-          background: '#ffe6e6',
-          color: '#cc0000',
-          borderRadius: '6px',
-          marginBottom: '20px'
+          padding: '10px 12px',
+          background: '#fff3cd',
+          borderLeft: '3px solid #ffa000',
+          color: '#1a1a1a',
+          marginBottom: '20px',
+          fontSize: '12px'
         }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -212,36 +297,18 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading }) 
         disabled={submitting || loading}
         style={{
           width: '100%',
-          padding: '14px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          background: (submitting || loading) ? '#ccc' : '#667eea',
-          color: 'white',
+          padding: '16px',
+          fontSize: '16px',
+          fontWeight: '500',
+          background: (submitting || loading) ? '#e0e0e0' : '#1a1a1a',
+          color: (submitting || loading) ? '#999' : '#fff',
           border: 'none',
-          borderRadius: '8px',
           cursor: (submitting || loading) ? 'not-allowed' : 'pointer',
-          opacity: (submitting || loading) ? 0.7 : 1
+          minHeight: '48px'
         }}
       >
-        {submitting || loading ? 'Creating Poll...' : 'Create Poll'}
+        {submitting || loading ? 'Creating...' : 'Create poll'}
       </button>
-
-      {/* Instructions */}
-      <div style={{
-        marginTop: '20px',
-        padding: '15px',
-        background: '#f0f4ff',
-        borderRadius: '8px',
-        fontSize: '14px',
-        color: '#555'
-      }}>
-        <strong>💡 Tips:</strong>
-        <ul style={{ margin: '8px 0 0 20px', padding: 0 }}>
-          <li>Question: 200 characters max</li>
-          <li>Options: 2-10 options required</li>
-          <li>Each option: 100 characters max</li>
-        </ul>
-      </div>
     </div>
   );
 };

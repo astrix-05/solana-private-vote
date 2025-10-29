@@ -11,13 +11,16 @@ interface Poll {
   isActive: boolean;
   votes: number;
   voteCounts?: VoteCount;
+  expiryDate?: number;
+  isAnonymous?: boolean;
 }
 
 interface ResultsFixedProps {
   polls: Poll[];
+  isPollExpired: (poll: Poll) => boolean;
 }
 
-const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls }) => {
+const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => {
   // Mock vote distribution (in real app, this would come from blockchain)
   const getVoteDistribution = (poll: Poll): VoteCount => {
     // If we have real vote counts, use them
@@ -56,8 +59,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls }) => {
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: 'white',
-        borderRadius: '15px',
+        background: '#f8f9fa',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: '#666' }}>
@@ -67,8 +69,10 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls }) => {
     );
   }
 
-  // Filter to only show polls with votes or closed polls
-  const pollsWithResults = polls.filter(p => p.votes > 0 || !p.isActive);
+  // Group polls by status
+  const activePolls = polls.filter(p => p.isActive && !isPollExpired(p));
+  const closedOrExpiredPolls = polls.filter(p => !p.isActive || isPollExpired(p));
+  const pollsWithResults = polls.filter(p => p.votes > 0 || !p.isActive || isPollExpired(p));
 
   if (pollsWithResults.length === 0) {
     return (
@@ -76,8 +80,7 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls }) => {
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: 'white',
-        borderRadius: '15px',
+        background: '#f8f9fa',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: '#666' }}>
@@ -108,209 +111,469 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls }) => {
         View detailed voting results with visual charts
       </p>
 
-      <div style={{ display: 'grid', gap: '30px' }}>
-        {pollsWithResults.map((poll) => {
-          const distribution = getVoteDistribution(poll);
-          const maxVotes = getMaxVotes(distribution);
-          const sortedOptions = Object.entries(distribution)
-            .sort(([,a], [,b]) => b - a)
-            .map(([index]) => parseInt(index));
+      {/* Active Polls */}
+      {activePolls.length > 0 && (
+        <>
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#333',
+            marginBottom: '16px',
+            marginTop: '24px'
+          }}>
+            Active Polls
+          </h3>
+          <div style={{ display: 'grid', gap: '30px', marginBottom: '48px' }}>
+            {activePolls.map((poll) => {
+              const distribution = getVoteDistribution(poll);
+              const maxVotes = getMaxVotes(distribution);
+              const sortedOptions = Object.entries(distribution)
+                .sort(([,a], [,b]) => b - a)
+                .map(([index]) => parseInt(index));
 
-          return (
-            <div
-              key={poll.id}
-              style={{
-                background: 'white',
-                padding: '30px',
-                borderRadius: '15px',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-              }}
-            >
-              {/* Poll Header */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'start',
-                marginBottom: '25px'
-              }}>
-                <h3 style={{
-                  fontSize: '24px',
-                  color: '#333',
-                  fontWeight: '600',
-                  flex: 1,
-                  margin: 0
+              return (
+                <div key={poll.id} style={{
+                  background: '#f8f9fa',
+                  padding: '24px',
+                  marginBottom: '16px'
                 }}>
-                  {poll.question}
-                </h3>
-                <div style={{
-                  padding: '6px 14px',
-                  background: poll.isActive ? '#e8f5e9' : '#fff3e0',
-                  color: poll.isActive ? '#2e7d32' : '#f57c00',
-                  borderRadius: '20px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  marginLeft: '15px'
-                }}>
-                  {poll.isActive ? '✓ Active' : '✗ Closed'}
-                </div>
-              </div>
-
-              {/* Total Votes */}
-              <div style={{
-                padding: '15px',
-                background: '#f0f4ff',
-                borderRadius: '10px',
-                marginBottom: '25px'
-              }}>
-                <div style={{
-                  fontSize: '28px',
-                  fontWeight: 'bold',
-                  color: '#667eea',
-                  textAlign: 'center'
-                }}>
-                  {poll.votes}
-                </div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#666',
-                  textAlign: 'center',
-                  marginTop: '5px'
-                }}>
-                  Total Votes
-                </div>
-              </div>
-
-              {/* Results Bars */}
-              <div style={{ marginBottom: '20px' }}>
-                {poll.options.map((option, index) => {
-                  const votes = distribution[index] || 0;
-                  const percentage = getPercentage(votes, poll.votes);
-                  const width = maxVotes > 0 ? (votes / maxVotes) * 100 : 0;
-                  const isWinner = index === sortedOptions[0] && votes > 0;
-
-                  return (
-                    <div key={index} style={{ marginBottom: '18px' }}>
-                      <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '8px'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
-                          <span style={{
-                            fontSize: '16px',
-                            fontWeight: '500',
-                            color: '#555',
-                            minWidth: '120px'
-                          }}>
-                            {option}
-                          </span>
-                          {isWinner && (
-                            <span style={{
-                              marginLeft: '10px',
-                              padding: '3px 10px',
-                              background: '#ffd700',
-                              color: '#856404',
-                              borderRadius: '12px',
-                              fontSize: '12px',
-                              fontWeight: '600'
-                            }}>
-                              👑 Winner
-                            </span>
-                          )}
-                        </div>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '15px',
-                          marginLeft: '10px'
+                  {/* Poll Header */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'start',
+                    marginBottom: '25px'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <h3 style={{
+                          fontSize: '24px',
+                          color: '#333',
+                          fontWeight: '600',
+                          margin: 0
                         }}>
+                          {poll.question}
+                        </h3>
+                        {poll.isAnonymous && (
                           <span style={{
-                            fontSize: '18px',
-                            fontWeight: '600',
-                            color: '#333',
-                            minWidth: '40px',
-                            textAlign: 'right'
+                            padding: '2px 8px',
+                            background: '#e3f2fd',
+                            color: '#1976d2',
+                            fontSize: '10px',
+                            fontWeight: '500'
                           }}>
-                            {votes}
+                            🔒 Anonymous
                           </span>
-                          <span style={{
-                            fontSize: '16px',
-                            color: '#999',
-                            minWidth: '45px',
-                            textAlign: 'right'
-                          }}>
-                            {percentage}%
-                          </span>
-                        </div>
+                        )}
                       </div>
-                      {/* Bar Chart */}
-                      <div style={{
-                        width: '100%',
-                        height: '32px',
-                        background: '#f0f0f0',
-                        borderRadius: '16px',
-                        overflow: 'hidden',
-                        position: 'relative'
-                      }}>
-                        <div style={{
-                          width: `${width}%`,
-                          height: '100%',
-                          background: isWinner
-                            ? 'linear-gradient(90deg, #ffd700, #ffed4e)'
-                            : 'linear-gradient(90deg, #667eea, #764ba2)',
-                          borderRadius: '16px',
-                          transition: 'all 0.5s ease',
-                          boxShadow: isWinner ? '0 2px 8px rgba(255, 215, 0, 0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'flex-end',
-                          paddingRight: '12px'
+                      {poll.isAnonymous && (
+                        <p style={{
+                          fontSize: '12px',
+                          color: '#666',
+                          margin: 0,
+                          fontStyle: 'italic'
                         }}>
-                          {width > 15 && (
-                            <span style={{
-                              color: isWinner ? '#856404' : 'white',
-                              fontSize: '14px',
-                              fontWeight: '600'
+                          Voter addresses are hidden for privacy
+                        </p>
+                      )}
+                    </div>
+                    <div style={{
+                      padding: '6px 14px',
+                      background: '#e8f5e9',
+                      color: '#2e7d32',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      marginLeft: '15px'
+                    }}>
+                      Active
+                    </div>
+                  </div>
+
+                  {/* Total Votes */}
+                  <div style={{
+                    padding: '15px',
+                    background: '#f0f4ff',
+                    marginBottom: '25px'
+                  }}>
+                    <div style={{
+                      fontSize: '28px',
+                      fontWeight: 'bold',
+                      color: '#667eea',
+                      textAlign: 'center'
+                    }}>
+                      {poll.votes}
+                    </div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: '#666',
+                      textAlign: 'center',
+                      marginTop: '5px'
+                    }}>
+                      Total Votes
+                    </div>
+                  </div>
+
+                  {/* Results Bars */}
+                  <div style={{ marginBottom: '20px' }}>
+                    {poll.options.map((option, index) => {
+                      const votes = distribution[index] || 0;
+                      const percentage = getPercentage(votes, poll.votes);
+                      const width = maxVotes > 0 ? (votes / maxVotes) * 100 : 0;
+                      const isWinner = index === sortedOptions[0] && votes > 0;
+
+                      return (
+                        <div key={index} style={{ marginBottom: '18px' }}>
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '8px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                              <span style={{
+                                fontSize: '16px',
+                                fontWeight: '500',
+                                color: '#555',
+                                minWidth: '120px'
+                              }}>
+                                {option}
+                              </span>
+                              {isWinner && (
+                                <span style={{
+                                  marginLeft: '10px',
+                                  padding: '3px 10px',
+                                  background: '#ffd700',
+                                  color: '#856404',
+                                  fontSize: '12px',
+                                  fontWeight: '600'
+                                }}>
+                                  👑 Winner
+                                </span>
+                              )}
+                            </div>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '15px',
+                              marginLeft: '10px'
                             }}>
-                              {percentage}%
-                            </span>
-                          )}
+                              <span style={{
+                                fontSize: '18px',
+                                fontWeight: '600',
+                                color: '#333',
+                                minWidth: '40px',
+                                textAlign: 'right'
+                              }}>
+                                {votes}
+                              </span>
+                              <span style={{
+                                fontSize: '16px',
+                                color: '#999',
+                                minWidth: '45px',
+                                textAlign: 'right'
+                              }}>
+                                {percentage}%
+                              </span>
+                            </div>
+                          </div>
+                          {/* Bar Chart */}
+                          <div style={{
+                            width: '100%',
+                            height: '32px',
+                            background: '#f0f0f0',
+                            overflow: 'hidden',
+                            position: 'relative'
+                          }}>
+                            <div style={{
+                              width: `${width}%`,
+                              height: '100%',
+                              background: isWinner
+                                ? 'linear-gradient(90deg, #ffd700, #ffed4e)'
+                                : 'linear-gradient(90deg, #667eea, #764ba2)',
+                              transition: 'all 0.5s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              paddingRight: '12px'
+                            }}>
+                              {width > 15 && (
+                                <span style={{
+                                  color: isWinner ? '#856404' : 'white',
+                                  fontSize: '14px',
+                                  fontWeight: '600'
+                                }}>
+                                  {percentage}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Winner Announcement */}
+                  {poll.votes > 0 && (
+                    <div style={{
+                      padding: '15px',
+                      background: 'linear-gradient(135deg, #fff9c4, #fff59d)',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        color: '#856404'
+                      }}>
+                        🎉 Winner: {poll.options[sortedOptions[0]]} 🎉
+                      </div>
+                      <div style={{
+                        fontSize: '14px',
+                        color: '#a68b00',
+                        marginTop: '5px'
+                      }}>
+                        with {distribution[sortedOptions[0]]} votes ({getPercentage(distribution[sortedOptions[0]], poll.votes)}%)
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Winner Announcement */}
-              {poll.votes > 0 && (
-                <div style={{
-                  padding: '15px',
-                  background: 'linear-gradient(135deg, #fff9c4, #fff59d)',
-                  borderRadius: '10px',
-                  textAlign: 'center'
-                }}>
-                  <div style={{
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    color: '#856404'
-                  }}>
-                    🎉 Winner: {poll.options[sortedOptions[0]]} 🎉
-                  </div>
-                  <div style={{
-                    fontSize: '14px',
-                    color: '#a68b00',
-                    marginTop: '5px'
-                  }}>
-                    with {distribution[sortedOptions[0]]} votes ({getPercentage(distribution[sortedOptions[0]], poll.votes)}%)
-                  </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Closed/Expired Polls */}
+      {closedOrExpiredPolls.length > 0 && (
+        <>
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: '600',
+            color: '#999',
+            marginBottom: '16px',
+            marginTop: '24px'
+          }}>
+            Closed / Expired Polls
+          </h3>
+          <div style={{ display: 'grid', gap: '30px' }}>
+            {closedOrExpiredPolls.map((poll) => {
+              const distribution = getVoteDistribution(poll);
+              const maxVotes = getMaxVotes(distribution);
+              const sortedOptions = Object.entries(distribution)
+                .sort(([,a], [,b]) => b - a)
+                .map(([index]) => parseInt(index));
+              const isExpired = isPollExpired(poll);
+
+              return (
+                <div key={poll.id} style={{
+                  background: '#f8f9fa',
+                  padding: '24px',
+                  marginBottom: '16px',
+                  opacity: isExpired ? 0.7 : 1
+                }}>
+                  {/* Poll Header */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'start',
+                    marginBottom: '25px'
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <h3 style={{
+                          fontSize: '24px',
+                          color: '#333',
+                          fontWeight: '600',
+                          margin: 0
+                        }}>
+                          {poll.question}
+                        </h3>
+                        {poll.isAnonymous && (
+                          <span style={{
+                            padding: '2px 8px',
+                            background: '#e3f2fd',
+                            color: '#1976d2',
+                            fontSize: '10px',
+                            fontWeight: '500'
+                          }}>
+                            🔒 Anonymous
+                          </span>
+                        )}
+                      </div>
+                      {poll.isAnonymous && (
+                        <p style={{
+                          fontSize: '12px',
+                          color: '#666',
+                          margin: 0,
+                          fontStyle: 'italic'
+                        }}>
+                          Voter addresses are hidden for privacy
+                        </p>
+                      )}
+                    </div>
+                    <div style={{
+                      padding: '6px 14px',
+                      background: isExpired ? '#efefef' : '#fff3e0',
+                      color: isExpired ? '#999' : '#f57c00',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      marginLeft: '15px'
+                    }}>
+                      {isExpired ? 'Expired' : 'Closed'}
+                    </div>
+                  </div>
+
+                  {/* Total Votes */}
+                  <div style={{
+                    padding: '15px',
+                    background: '#f0f4ff',
+                    marginBottom: '25px'
+                  }}>
+                    <div style={{
+                      fontSize: '28px',
+                      fontWeight: 'bold',
+                      color: '#667eea',
+                      textAlign: 'center'
+                    }}>
+                      {poll.votes}
+                    </div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: '#666',
+                      textAlign: 'center',
+                      marginTop: '5px'
+                    }}>
+                      Total Votes
+                    </div>
+                  </div>
+
+                  {/* Results Bars */}
+                  <div style={{ marginBottom: '20px' }}>
+                    {poll.options.map((option, index) => {
+                      const votes = distribution[index] || 0;
+                      const percentage = getPercentage(votes, poll.votes);
+                      const width = maxVotes > 0 ? (votes / maxVotes) * 100 : 0;
+                      const isWinner = index === sortedOptions[0] && votes > 0;
+
+                      return (
+                        <div key={index} style={{ marginBottom: '18px' }}>
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginBottom: '8px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                              <span style={{
+                                fontSize: '16px',
+                                fontWeight: '500',
+                                color: '#555',
+                                minWidth: '120px'
+                              }}>
+                                {option}
+                              </span>
+                              {isWinner && (
+                                <span style={{
+                                  marginLeft: '10px',
+                                  padding: '3px 10px',
+                                  background: '#ffd700',
+                                  color: '#856404',
+                                  fontSize: '12px',
+                                  fontWeight: '600'
+                                }}>
+                                  👑 Winner
+                                </span>
+                              )}
+                            </div>
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '15px',
+                              marginLeft: '10px'
+                            }}>
+                              <span style={{
+                                fontSize: '18px',
+                                fontWeight: '600',
+                                color: '#333',
+                                minWidth: '40px',
+                                textAlign: 'right'
+                              }}>
+                                {votes}
+                              </span>
+                              <span style={{
+                                fontSize: '16px',
+                                color: '#999',
+                                minWidth: '45px',
+                                textAlign: 'right'
+                              }}>
+                                {percentage}%
+                              </span>
+                            </div>
+                          </div>
+                          {/* Bar Chart */}
+                          <div style={{
+                            width: '100%',
+                            height: '32px',
+                            background: '#f0f0f0',
+                            overflow: 'hidden',
+                            position: 'relative'
+                          }}>
+                            <div style={{
+                              width: `${width}%`,
+                              height: '100%',
+                              background: isWinner
+                                ? 'linear-gradient(90deg, #ffd700, #ffed4e)'
+                                : 'linear-gradient(90deg, #667eea, #764ba2)',
+                              transition: 'all 0.5s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'flex-end',
+                              paddingRight: '12px'
+                            }}>
+                              {width > 15 && (
+                                <span style={{
+                                  color: isWinner ? '#856404' : 'white',
+                                  fontSize: '14px',
+                                  fontWeight: '600'
+                                }}>
+                                  {percentage}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Winner Announcement */}
+                  {poll.votes > 0 && (
+                    <div style={{
+                      padding: '15px',
+                      background: 'linear-gradient(135deg, #fff9c4, #fff59d)',
+                      textAlign: 'center'
+                    }}>
+                      <div style={{
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        color: '#856404'
+                      }}>
+                        🎉 Winner: {poll.options[sortedOptions[0]]} 🎉
+                      </div>
+                      <div style={{
+                        fontSize: '14px',
+                        color: '#a68b00',
+                        marginTop: '5px'
+                      }}>
+                        with {distribution[sortedOptions[0]]} votes ({getPercentage(distribution[sortedOptions[0]], poll.votes)}%)
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 };

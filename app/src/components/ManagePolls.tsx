@@ -102,9 +102,16 @@ const ManagePolls: React.FC<ManagePollsProps> = ({ onClosePoll, onRevealResults 
           <div key={index} className="card">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {poll.question}
-                </h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {poll.question}
+                  </h3>
+                  {poll.isAnonymous && (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                      🔒 Anonymous
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <div className="flex items-center space-x-1">
                     <Users className="w-4 h-4" />

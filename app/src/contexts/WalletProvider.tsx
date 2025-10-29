@@ -41,17 +41,36 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   );
 
   const connect = async () => {
+    console.log('Attempting to connect wallet...');
     if (typeof window !== 'undefined' && (window as any).solana) {
       try {
         const wallet = (window as any).solana;
+        console.log('Wallet detected, attempting connection...');
         const response = await wallet.connect();
         setPublicKey(response.publicKey.toString());
         setConnected(true);
+        console.log('Wallet connected successfully:', response.publicKey.toString());
+        alert(`Wallet connected successfully! Address: ${response.publicKey.toString().slice(0, 8)}...`);
       } catch (err) {
         console.error('Failed to connect wallet:', err);
+        alert('Failed to connect wallet. Please try again.');
       }
     } else {
-      alert('Please install Phantom wallet from https://phantom.app/');
+      console.log('No wallet detected');
+      // For testing purposes, simulate a wallet connection
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Development mode: simulating wallet connection');
+        setPublicKey('test_wallet_1234567890abcdef');
+        setConnected(true);
+        alert('Development mode: Simulated wallet connection for testing');
+      } else {
+        // Check for other wallet providers
+        if (typeof window !== 'undefined' && (window as any).solflare) {
+          alert('Phantom wallet not detected. Please install Phantom wallet from https://phantom.app/ or use Solflare wallet.');
+        } else {
+          alert('No Solana wallet detected. Please install Phantom wallet from https://phantom.app/');
+        }
+      }
     }
   };
 
@@ -61,9 +80,17 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
         await (window as any).solana.disconnect();
         setPublicKey(null);
         setConnected(false);
+        console.log('Wallet disconnected successfully');
       } catch (err) {
         console.error('Failed to disconnect wallet:', err);
+        // Force disconnect even if wallet disconnect fails
+        setPublicKey(null);
+        setConnected(false);
       }
+    } else {
+      // Force disconnect if wallet is not available
+      setPublicKey(null);
+      setConnected(false);
     }
   };
 
@@ -84,30 +111,26 @@ export const WalletButton: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       {connected ? (
         <>
-          <div style={{
-            padding: '8px 16px',
-            background: 'white',
-            borderRadius: '8px',
-            color: '#667eea',
-            fontSize: '14px',
-            fontWeight: '600'
+          <span style={{
+            fontSize: '12px',
+            color: '#999'
           }}>
             {formatAddress(publicKey)}
-          </div>
+          </span>
           <button
             onClick={disconnect}
             style={{
               padding: '8px 16px',
-              background: '#ff6b6b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
+              background: 'transparent',
+              color: '#666',
+              border: '1px solid #e0e0e0',
               cursor: 'pointer',
               fontSize: '14px',
-              fontWeight: '600'
+              fontWeight: '400',
+              minHeight: '36px'
             }}
           >
             Disconnect
@@ -117,18 +140,17 @@ export const WalletButton: React.FC = () => {
         <button
           onClick={connect}
           style={{
-            padding: '10px 20px',
-            background: 'white',
-            color: '#667eea',
+            padding: '8px 16px',
+            background: '#1a1a1a',
+            color: '#fff',
             border: 'none',
-            borderRadius: '8px',
             cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: '600',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            fontSize: '14px',
+            fontWeight: '500',
+            minHeight: '36px'
           }}
         >
-          Connect Wallet
+          Connect
         </button>
       )}
     </div>

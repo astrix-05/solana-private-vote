@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
+import CountdownTimer from './CountdownTimer';
 
 interface VotePollFixedProps {
   polls: Array<{
     question: string;
     options: string[];
     id: number;
+    expiryDate?: number;
+    isAnonymous?: boolean;
   }>;
   onVote: (pollId: number, optionIndex: number) => void;
+  isDemoMode?: boolean;
 }
 
-const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote }) => {
+const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode = false }) => {
   const [selectedOptions, setSelectedOptions] = useState<{ [pollId: number]: number | null }>({});
   const [votedPolls, setVotedPolls] = useState<{ [pollId: number]: number }>({});
 
@@ -42,8 +46,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote }) => {
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: 'white',
-        borderRadius: '15px',
+        background: '#f8f9fa',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: '#666' }}>
@@ -76,21 +79,52 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote }) => {
             <div
               key={poll.id}
               style={{
-                background: 'white',
-                padding: '25px',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                background: '#f8f9fa',
+                padding: '24px',
+                marginBottom: '16px'
               }}
             >
               {/* Poll Question */}
-              <h3 style={{
-                fontSize: '22px',
-                marginBottom: '20px',
-                color: '#333',
-                fontWeight: '600'
-              }}>
-                {poll.question}
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <h3 style={{
+                  fontSize: '22px',
+                  color: '#333',
+                  fontWeight: '600',
+                  margin: 0,
+                  flex: 1
+                }}>
+                  {poll.question}
+                </h3>
+                {poll.isAnonymous && (
+                  <span style={{
+                    padding: '2px 8px',
+                    background: '#e3f2fd',
+                    color: '#1976d2',
+                    fontSize: '10px',
+                    fontWeight: '500'
+                  }}>
+                    Anonymous
+                  </span>
+                )}
+                {isDemoMode && (
+                  <span style={{
+                    padding: '2px 8px',
+                    background: '#fff3cd',
+                    color: '#856404',
+                    fontSize: '10px',
+                    fontWeight: '500'
+                  }}>
+                    Demo
+                  </span>
+                )}
+              </div>
+
+              {/* Countdown Timer */}
+              {poll.expiryDate && (
+                <div style={{ marginBottom: '20px' }}>
+                  <CountdownTimer expiryDate={poll.expiryDate} />
+                </div>
+              )}
 
               {/* Options */}
               <div style={{ marginBottom: '20px' }}>
@@ -106,21 +140,18 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote }) => {
                         : selectedOption === index
                         ? '2px solid #667eea'
                         : '2px solid #e0e0e0',
-                      borderRadius: '8px',
                       cursor: hasVoted ? 'default' : 'pointer',
                       background: hasVoted && votedPolls[poll.id] === index
                         ? '#f1f8e9'
                         : selectedOption === index
                         ? '#f0f4ff'
-                        : '#fafafa',
-                      transition: 'all 0.2s'
+                        : '#fafafa'
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <div style={{
                         width: '24px',
                         height: '24px',
-                        borderRadius: '50%',
                         border: hasVoted && votedPolls[poll.id] === index
                           ? '4px solid #4caf50'
                           : selectedOption === index
@@ -162,7 +193,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote }) => {
                   disabled={selectedOption === undefined || selectedOption === null}
                   style={{
                     width: '100%',
-                    padding: '14px',
+                    padding: '16px',
                     fontSize: '16px',
                     fontWeight: '600',
                     background: selectedOption !== null && selectedOption !== undefined
@@ -170,11 +201,10 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote }) => {
                       : '#ccc',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '8px',
                     cursor: selectedOption !== null && selectedOption !== undefined
                       ? 'pointer'
                       : 'not-allowed',
-                    transition: 'all 0.3s'
+                    minHeight: '48px'
                   }}
                 >
                   {selectedOption !== null && selectedOption !== undefined
@@ -186,7 +216,6 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote }) => {
                   padding: '12px',
                   background: '#e8f5e9',
                   color: '#2e7d32',
-                  borderRadius: '8px',
                   textAlign: 'center',
                   fontSize: '16px',
                   fontWeight: '600'

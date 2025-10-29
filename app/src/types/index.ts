@@ -9,6 +9,7 @@ export interface Poll {
   voteCounts: number[];
   createdAt: number;
   closedAt: number | null;
+  isAnonymous?: boolean;
 }
 
 export interface Vote {

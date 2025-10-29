@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SharePoll from './SharePoll';
 
 interface Poll {
   id: number;
@@ -17,6 +18,8 @@ interface ManagePollsFixedProps {
 const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll, onReopenPoll }) => {
   const [pollsState, setPollsState] = useState<Poll[]>(polls);
   const [message, setMessage] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [sharePollId, setSharePollId] = useState<number | null>(null);
 
   const handleClosePoll = (pollId: number) => {
     setPollsState(prev => 
@@ -32,14 +35,18 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
     }
   };
 
+  const handleSharePoll = (pollId: number) => {
+    setSharePollId(pollId);
+    setShowShareModal(true);
+  };
+
   if (pollsState.length === 0) {
     return (
       <div style={{
         maxWidth: '600px',
         margin: '40px auto',
         padding: '40px',
-        background: 'white',
-        borderRadius: '15px',
+        background: '#f8f9fa',
         textAlign: 'center'
       }}>
         <p style={{ fontSize: '18px', color: '#666' }}>
@@ -90,10 +97,9 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
           <div
             key={poll.id}
             style={{
-              background: 'white',
-              padding: '25px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              background: '#f8f9fa',
+              padding: '24px',
+              marginBottom: '16px',
               border: poll.isActive ? '2px solid #667eea' : '2px solid #e0e0e0'
             }}
           >
@@ -117,7 +123,6 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
                 padding: '6px 14px',
                 background: poll.isActive ? '#e8f5e9' : '#fff3e0',
                 color: poll.isActive ? '#2e7d32' : '#f57c00',
-                borderRadius: '20px',
                 fontSize: '14px',
                 fontWeight: '600',
                 marginLeft: '15px'
@@ -130,8 +135,7 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
             <div style={{
               marginBottom: '20px',
               padding: '15px',
-              background: '#f9f9f9',
-              borderRadius: '8px'
+              background: '#f9f9f9'
             }}>
               <strong style={{ color: '#666', fontSize: '14px' }}>Options:</strong>
               <div style={{ marginTop: '10px', display: 'grid', gap: '8px' }}>
@@ -139,7 +143,6 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
                   <div key={index} style={{
                     padding: '10px',
                     background: 'white',
-                    borderRadius: '6px',
                     fontSize: '15px',
                     color: '#555'
                   }}>
@@ -168,39 +171,64 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
               </div>
             </div>
 
-            {/* Action Button */}
+            {/* Action Buttons */}
             <div style={{ 
               display: 'flex', 
-              gap: '10px',
-              justifyContent: 'flex-end'
+              gap: '8px',
+              justifyContent: 'flex-end',
+              alignItems: 'center'
             }}>
+              <button
+                onClick={() => handleSharePoll(poll.id)}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#f0f0f0',
+                  color: '#666',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '18px'
+                }}
+                title="Share Poll"
+              >
+                📤
+              </button>
               {poll.isActive ? (
                 <button
                   onClick={() => handleClosePoll(poll.id)}
                   style={{
-                    padding: '12px 28px',
-                    fontSize: '16px',
-                    fontWeight: '600',
+                    width: '44px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     background: '#ff6b6b',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '8px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    fontSize: '18px'
                   }}
+                  title="Close Poll"
                 >
-                  Close Poll
+                  ✕
                 </button>
               ) : (
                 <div style={{
-                  padding: '12px 28px',
-                  fontSize: '16px',
+                  width: '44px',
+                  height: '44px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   color: '#999',
                   background: '#f5f5f5',
-                  borderRadius: '8px',
-                  border: 'none'
-                }}>
-                  Poll is closed
+                  fontSize: '18px'
+                }}
+                title="Poll is closed"
+                >
+                  ✓
                 </div>
               )}
             </div>
@@ -237,6 +265,18 @@ const ManagePollsFixed: React.FC<ManagePollsFixedProps> = ({ polls, onClosePoll,
           <div style={{ fontSize: '14px', color: '#666' }}>Closed</div>
         </div>
       </div>
+
+      {/* Share Poll Modal */}
+      {showShareModal && sharePollId && (
+        <SharePoll
+          pollId={sharePollId}
+          pollQuestion={pollsState.find(p => p.id === sharePollId)?.question || ''}
+          onClose={() => {
+            setShowShareModal(false);
+            setSharePollId(null);
+          }}
+        />
+      )}
     </div>
   );
 };

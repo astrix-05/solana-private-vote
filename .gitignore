@@ -1,0 +1,60 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Secrets and keys
+*.pem
+*.key
+*.p12
+*.pfx
+crux-manager.js
+
+# Build outputs
+dist/
+build/
+target/
+*.so
+*.dylib
+*.dll
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Solana
+test-ledger/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Anchor
+.anchor/
+deploy-keypair.json
+
+# React
+coverage/
+.eslintcache
+
+# Logs
+logs/
+*.log
