@@ -70,15 +70,13 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
       <div style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border-light)',
-        borderRadius: '8px',
-        boxShadow: 'var(--shadow-subtle)',
         borderRadius: '12px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
         padding: '30px',
         maxWidth: '500px',
         width: '90%',
         maxHeight: '90vh',
-        overflow: 'auto',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+        overflow: 'auto'
       }}>
         {/* Header */}
         <div style={{
@@ -220,12 +218,9 @@ const SharePoll: React.FC<SharePollProps> = ({ pollId, pollQuestion, onClose }) 
               display: 'inline-block',
               padding: '16px',
               background: 'var(--bg-card)',
-        border: '1px solid var(--border-light)',
-        borderRadius: '8px',
-        boxShadow: 'var(--shadow-subtle)',
+              border: '1px solid var(--border-light)',
               borderRadius: '8px',
-              border: '1px solid #e0e0e0',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+              boxShadow: 'var(--shadow-subtle)'
             }}>
               <img
                 src={qrCodeDataUrl}
