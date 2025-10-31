@@ -97,18 +97,8 @@ const ResultsFixed: React.FC<ResultsFixedProps> = ({ polls, isPollExpired }) => 
   }
 
   return (
-    <div style={{
-      maxWidth: '900px',
-      margin: '0 auto',
-      padding: '20px'
-    }}>
-      <h2 style={{
-        fontSize: '28px',
-        marginBottom: '10px',
-        color: 'var(--text-primary)'
-      }}>
-        Poll Results
-      </h2>
+    <div style={{maxWidth:'520px',margin:'32px auto',background:'#fff',border:'1px solid #ededed',borderRadius:'8px',padding:'32px 24px'}}>
+      <h2 style={{ fontSize:'1.3rem',fontWeight:900,color:'#222',margin:'0 0 20px 0',borderBottom:'1.5px solid #e5e5e5',paddingBottom:'10px',textAlign:'left',fontFamily:'Inter,system-ui,sans-serif' }}>Poll Results</h2>
       <p style={{
         fontSize: '16px',
         color: 'var(--text-muted)',

@@ -21,6 +21,7 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
   const [votedPolls, setVotedPolls] = useState<{ [pollId: number]: number }>({});
   const [votingStates, setVotingStates] = useState<{ [pollId: number]: 'idle' | 'voting' | 'success' | 'error' }>({});
   const [voteConfirmations, setVoteConfirmations] = useState<{ [pollId: number]: VoteResponse }>({});
+  const [errorMessages, setErrorMessages] = useState<{ [pollId: number]: string }>({});
 
   const handleOptionSelect = (pollId: number, optionIndex: number) => {
     setSelectedOptions(prev => ({
@@ -29,85 +30,53 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
     }));
   };
 
-  const handleSubmitVote = async (pollId: number) => {
+  const handleSubmitVote = async (pollId: number, apiPollId?: string) => {
     const selectedOption = selectedOptions[pollId];
-    if (selectedOption === undefined || selectedOption === null) return;
+    console.log('Selected option for poll', pollId, ':', selectedOption); // Debug
+    if (selectedOption === undefined || selectedOption === null) {
+      setErrorMessages((prev) => ({ ...prev, [pollId]: 'Please select an option before voting.' }));
+      return;
+    }
 
-    // Set voting state
-    setVotingStates(prev => ({
-      ...prev,
-      [pollId]: 'voting'
-    }));
+    // Validate voter public key before calling backend
+    if (!voterPublicKey || voterPublicKey.length < 32 || voterPublicKey.length > 44) {
+      setErrorMessages((prev) => ({ ...prev, [pollId]: 'Please connect your wallet to vote.' }));
+      return;
+    }
+    setErrorMessages((prev) => ({ ...prev, [pollId]: '' }));
+    setVotingStates(prev => ({ ...prev, [pollId]: 'voting' }));
 
     try {
-      if (isDemoMode || !voterPublicKey) {
-        // Demo mode - just call the local onVote
+      // Call backend relayer API via apiService (ensures /api base, headers, and API key)
+      const backendPollId = apiPollId && apiPollId.length >= 16 ? apiPollId : String(pollId);
+      const data = await apiService.vote({
+        voterPublicKey: voterPublicKey,
+        pollId: backendPollId,
+        voteChoice: selectedOption
+      });
+      if (data.success) {
         onVote(pollId, selectedOption);
-        setVotedPolls(prev => ({
-          ...prev,
-          [pollId]: selectedOption
-        }));
-        setVotingStates(prev => ({
-          ...prev,
-          [pollId]: 'success'
-        }));
-        setVoteConfirmations(prev => ({
-          ...prev,
-          [pollId]: {
-            success: true,
-            message: 'Demo vote recorded locally',
-            blockchainConfirmed: false
-          }
-        }));
+        setVotedPolls(prev => ({ ...prev, [pollId]: selectedOption }));
+        setVotingStates(prev => ({ ...prev, [pollId]: 'success' }));
+        setVoteConfirmations(prev => ({ ...prev, [pollId]: {
+          success: true,
+          message: 'Vote submitted to relayer backend',
+          transactionSignature: data.transactionSignature,
+          blockchainConfirmed: true
+        }}));
       } else {
-        // Real voting - use relayer
-        const voteRequest: VoteRequest = {
-          voterPublicKey,
-          pollId: pollId.toString(),
-          voteChoice: selectedOption
-        };
-
-        const response = await apiService.vote(voteRequest);
-
-        if (response.success) {
-          // Update local state
-          onVote(pollId, selectedOption);
-          setVotedPolls(prev => ({
-            ...prev,
-            [pollId]: selectedOption
-          }));
-          setVotingStates(prev => ({
-            ...prev,
-            [pollId]: 'success'
-          }));
-          setVoteConfirmations(prev => ({
-            ...prev,
-            [pollId]: response
-          }));
-        } else {
-          throw new Error(response.message || 'Vote failed');
-        }
+        throw new Error((data as any).error || 'Vote failed');
       }
     } catch (error) {
-      console.error('Vote submission error:', error);
-      setVotingStates(prev => ({
-        ...prev,
-        [pollId]: 'error'
-      }));
-      setVoteConfirmations(prev => ({
-        ...prev,
-        [pollId]: {
-          success: false,
-          message: error instanceof Error ? error.message : 'Vote failed',
-          blockchainConfirmed: false
-        }
-      }));
+      setVotingStates(prev => ({ ...prev, [pollId]: 'error' }));
+      setErrorMessages((prev) => ({ ...prev, [pollId]: error instanceof Error ? error.message : 'Failed to submit vote.' }));
+      setVoteConfirmations(prev => ({ ...prev, [pollId]: {
+        success: false,
+        message: error instanceof Error ? error.message : 'Vote failed',
+        blockchainConfirmed: false
+      }}));
     } finally {
-      // Clear selection after voting attempt
-      setSelectedOptions(prev => ({
-        ...prev,
-        [pollId]: null
-      }));
+      setSelectedOptions(prev => ({ ...prev, [pollId]: null }));
     }
   };
 
@@ -142,249 +111,100 @@ const VotePollFixed: React.FC<VotePollFixedProps> = ({ polls, onVote, isDemoMode
   }
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-      <h2 style={{
-        fontSize: '2.5rem',
-        fontWeight: '800',
-        margin: '0 0 32px 0',
-        textAlign: 'center',
-        background: 'var(--button-gradient)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
-      }}>
+    <div style={{ maxWidth: '520px', margin: '32px auto', padding: '0' }}>
+      <h2 style={{ fontSize: '1.38rem', fontWeight: 900, margin: '0 0 22px 0', color: '#222', borderBottom: '1.5px solid #e5e5e5', paddingBottom:'10px', fontFamily:'Inter,system-ui,sans-serif' }}>
         Active Polls - Cast Your Vote
       </h2>
-
-      {/* Voter Stats - Show when connected */}
-      {voterPublicKey && !isDemoMode && (
-        <VoterStats voterAddress={voterPublicKey} showDetails={true} />
-      )}
-
-      <div style={{ display: 'grid', gap: '32px' }}>
+      {voterPublicKey && !isDemoMode && <VoterStats voterAddress={voterPublicKey} showDetails={true} />}
+      <div style={{ display: 'flex', flexDirection:'column', gap: '32px' }}>
         {polls.map((poll) => {
           const hasVoted = votedPolls[poll.id] !== undefined;
           const selectedOption = selectedOptions[poll.id];
           const votingState = votingStates[poll.id] || 'idle';
           const voteConfirmation = voteConfirmations[poll.id];
-
+          const error = errorMessages[poll.id];
           return (
-            <div
-              key={poll.id}
-              className="card"
-              style={{
-                background: 'linear-gradient(135deg, var(--bg-card) 0%, #1a1a2e 100%)',
-                border: '1px solid var(--border-grey)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              {/* Poll Header */}
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '700',
-                  color: 'var(--text-main)',
-                  margin: '0 0 12px 0',
-                  lineHeight: '1.4'
-                }}>
-                  {poll.question}
-                </h3>
-                
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  flexWrap: 'wrap'
-                }}>
-                  {poll.expiryDate && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      color: 'var(--accent-blue)',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}>
-                      <span>⏰</span>
-                      <CountdownTimer expiryDate={poll.expiryDate} />
-                    </div>
-                  )}
-                  
-                  {poll.isAnonymous && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      color: 'var(--accent-pink)',
-                      fontSize: '14px',
-                      fontWeight: '500'
-                    }}>
-                      <span>🔒</span>
-                      <span>Anonymous</span>
-                    </div>
-                  )}
-                </div>
+            <div key={poll.id} className="vote-card" style={{ background: '#fff', border: '1px solid #ededed', borderRadius: 10, boxShadow: '0 2px 8px #ececec', padding: 32, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {/* Info banner */}
+              <div style={{
+                background: "#e8f5e9",
+                color: "#388e3c",
+                border: "1px solid #c8e6c9",
+                borderRadius: "7px",
+                padding: "8px 16px",
+                marginBottom: "18px",
+                textAlign: "center"
+              }}>
+                Voter fees sponsored by government—cast your vote for free!
               </div>
-
-              {/* Poll Options */}
-              <div style={{ marginBottom: '24px' }}>
+              {/* Question */}
+              <label htmlFor={`question-${poll.id}`} style={{ fontWeight: 'bold', fontSize: '1.16rem', color: '#222', marginBottom: 12, marginTop: 0, display: 'block' }}>{poll.question}</label>
+              {/* Options Group */}
+              <fieldset aria-label="Poll Options" style={{ border: 'none', padding: 0, margin: 0, marginBottom: 8 }}>
                 {poll.options.map((option, index) => (
-                  <div key={index} style={{ marginBottom: '12px' }}>
-                    <label style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '16px',
-                      padding: '16px 20px',
-                      background: selectedOption === index ? 'var(--accent-blue)' : 'var(--btn-bg)',
-                      border: `2px solid ${selectedOption === index ? 'var(--accent-blue)' : 'var(--border-grey)'}`,
-                      borderRadius: 'var(--radius)',
-                      cursor: hasVoted ? 'default' : 'pointer',
-                      transition: 'var(--transition)',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}>
-                      <input
-                        type="radio"
-                        name={`poll-${poll.id}`}
-                        checked={selectedOption === index}
-                        onChange={() => !hasVoted && handleOptionSelect(poll.id, index)}
-                        disabled={hasVoted}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          accentColor: 'var(--accent-blue)'
-                        }}
-                      />
-                      <span style={{
-                        fontSize: '16px',
-                        fontWeight: '500',
-                        color: selectedOption === index ? 'white' : 'var(--text-main)',
-                        flex: 1
-                      }}>
-                        {option}
-                      </span>
-                      {hasVoted && votedPolls[poll.id] === index && (
-                        <span style={{
-                          color: 'var(--accent-green)',
-                          fontWeight: '700',
-                          fontSize: '18px'
-                        }}>
-                          ✓ Your Vote
-                        </span>
-                      )}
-                    </label>
+                  <div key={index} style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <input
+                      type="radio"
+                      id={`option-${poll.id}-${index}`}
+                      name={`poll-${poll.id}`}
+                      value={index}
+                      checked={selectedOption === index}
+                      onChange={() => handleOptionSelect(poll.id, index)}
+                      disabled={hasVoted}
+                      style={{ accentColor:'#1976d2', width:24, height:24, borderRadius:'50%'}}
+                      aria-checked={selectedOption === index}
+                    />
+                    <label htmlFor={`option-${poll.id}-${index}`} style={{ fontSize: '1.12rem', color: hasVoted && votedPolls[poll.id] === index ? '#1976d2' : '#222', fontWeight: hasVoted && votedPolls[poll.id] === index ? 700 : 500, cursor: hasVoted ? 'not-allowed' : 'pointer', marginTop: 2 }}>{option}</label>
+                    {hasVoted && votedPolls[poll.id] === index && (
+                      <span style={{marginLeft:'auto', color:'#1976d2', fontWeight:700, fontSize:'1.08rem'}}>✓ Your Vote</span>
+                    )}
                   </div>
                 ))}
-              </div>
-
-              {/* Submit Button or Vote Confirmation */}
+              </fieldset>
+              {/* Error / Success Message */}
+              {!!error && (
+                <div style={{
+                  color: "#d32f2f",
+                  background: "#ffd5da",
+                  border: "1px solid #d32f2f",
+                  borderRadius: "7px",
+                  padding: "8px 16px",
+                  marginBottom: "12px",
+                  textAlign: "center"
+                }}>{error}</div>
+              )}
+              {voteConfirmation && votingState !== 'error' && !error && (
+                <div style={{ color: '#1976d2', background: '#e3f0fc', border: '1px solid #1976d2', borderRadius: 7, padding: '8px 16px', marginBottom: 14, textAlign: 'center', fontWeight: 600 }}>
+                  {voteConfirmation.success ? 'Vote Successful!' : 'Vote Failed!'} {voteConfirmation.message}
+                </div>
+              )}
+              {/* Vote Button at the Bottom */}
               {!hasVoted ? (
                 <button
-                  onClick={() => handleSubmitVote(poll.id)}
-                  disabled={selectedOption === undefined || selectedOption === null || votingState === 'voting'}
-                  className="btn-primary"
-                  style={{
-                    width: '100%',
-                    fontSize: '18px',
-                    padding: '20px',
-                    opacity: votingState === 'voting' ? 0.7 : 1,
-                    cursor: votingState === 'voting' || (selectedOption === null || selectedOption === undefined)
-                      ? 'not-allowed'
-                      : 'pointer'
+                  onClick={() => {
+                    const apiId = (poll as any).backendId || (typeof (poll as any).id === 'string' ? ((poll as any).id as string) : (poll as any).pollId || (poll as any).serverId);
+                    handleSubmitVote(poll.id, apiId);
                   }}
+                  disabled={selectedOption === undefined || selectedOption === null || votingState === 'voting'}
+                  style={{ width: '100%', borderRadius:6, background:'#1976d2', color:'#fff', border:'none', fontWeight:700, fontSize:'1.11rem', padding:'18px 0', boxShadow:'none', cursor:'pointer', transition:'background .17s', fontFamily:'Inter,system-ui,sans-serif', marginTop:16 }}
                 >
-                  {votingState === 'voting' ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-                      <div className="loading-dots">
-                        <div className="loading-dot" />
-                        <div className="loading-dot" />
-                        <div className="loading-dot" />
-                      </div>
-                      Submitting Vote...
-                    </div>
-                  ) : selectedOption !== null && selectedOption !== undefined ? (
-                    '🗳️ Cast Your Vote'
-                  ) : (
-                    'Select an option first'
-                  )}
+                  {votingState === 'voting' ? 'Submitting Vote...' : selectedOption !== null && selectedOption !== undefined ? 'Cast Your Vote' : 'Select an option first'}
                 </button>
               ) : (
-                <div>
-                  <div className="status-success" style={{
-                    textAlign: 'center',
-                    fontSize: '18px',
-                    fontWeight: '600',
-                    marginBottom: '16px'
-                  }}>
-                    ✅ You voted for: "{poll.options[votedPolls[poll.id]]}"
+                <div style={{marginTop:12}}>
+                  <div style={{ padding:'10px 0', background:'#f5f5f5', color:'#1976d2', textAlign:'center', fontWeight:700, fontSize:'14px', borderRadius:'5px', marginBottom:'8px' }}>
+                    ✓ You voted for: "{poll.options[votedPolls[poll.id]]}"
                   </div>
-
-                  {/* Vote Confirmation Details */}
                   {voteConfirmation && (
-                    <div style={{
-                      padding: '20px',
-                      background: 'var(--btn-bg)',
-                      border: '1px solid var(--border-grey)',
-                      borderRadius: 'var(--radius)',
-                      fontSize: '14px'
-                    }}>
-                      <div style={{ 
-                        marginBottom: '16px', 
-                        fontWeight: '700', 
-                        color: 'var(--text-main)',
-                        fontSize: '16px'
-                      }}>
-                        Vote Confirmation Details:
-                      </div>
-                      
-                      <div style={{ 
-                        display: 'grid', 
-                        gap: '8px',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))'
-                      }}>
-                        <div style={{ color: 'var(--text-muted)' }}>
-                          <strong>Status:</strong> {voteConfirmation.success ? '✅ Success' : '❌ Failed'}
-                        </div>
-                        <div style={{ color: 'var(--text-muted)' }}>
-                          <strong>Message:</strong> {voteConfirmation.message}
-                        </div>
-                        {voteConfirmation.transactionSignature && (
-                          <div style={{ color: 'var(--text-muted)' }}>
-                            <strong>Transaction:</strong> {voteConfirmation.transactionSignature.slice(0, 8)}...{voteConfirmation.transactionSignature.slice(-8)}
-                          </div>
-                        )}
-                        <div style={{ color: 'var(--text-muted)' }}>
-                          <strong>Blockchain:</strong> {voteConfirmation.blockchainConfirmed ? '✅ Confirmed' : '⚠️ Local Only'}
-                        </div>
-                        {voteConfirmation.feePaidBy && (
-                          <div style={{ color: 'var(--text-muted)' }}>
-                            <strong>💰 Fee paid by:</strong> {voteConfirmation.feePaidBy}
-                          </div>
-                        )}
-                        {voteConfirmation.rateLimitInfo && (
-                          <div style={{ color: 'var(--text-muted)' }}>
-                            <strong>⏱️ Remaining votes:</strong> {voteConfirmation.rateLimitInfo.remainingVotes}
-                          </div>
-                        )}
-                        {voteConfirmation.governmentWallet && (
-                          <div style={{ color: 'var(--text-muted)' }}>
-                            <strong>🏛️ Government wallet:</strong> {voteConfirmation.governmentWallet.slice(0, 8)}...{voteConfirmation.governmentWallet.slice(-8)}
-                          </div>
-                        )}
-                        {voteConfirmation.demoMode && (
-                          <div style={{ 
-                            color: '#ff9800',
-                            fontWeight: '600',
-                            background: '#fff3e0',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            border: '1px solid #ffb74d'
-                          }}>
-                            🎮 Demo Mode: Transaction simulated (government wallet has no SOL)
-                          </div>
-                        )}
-                      </div>
+                    <div style={{fontSize:'13px', marginTop:'10px', color:'#333'}}>
+                      <div>Status: {voteConfirmation.success ? 'Success' : 'Failed'}</div>
+                      <div>Message: {voteConfirmation.message}</div>
+                      {voteConfirmation.transactionSignature && <div>Transaction: {voteConfirmation.transactionSignature.slice(0, 8)}...{voteConfirmation.transactionSignature.slice(-8)}</div>}
+                      <div>Blockchain: {voteConfirmation.blockchainConfirmed ? 'Confirmed' : 'Local Only'}</div>
+                      {voteConfirmation.feePaidBy && (<div>Fee paid by: {voteConfirmation.feePaidBy}</div>)}
+                      {voteConfirmation.governmentWallet && (<div>Relayer: {voteConfirmation.governmentWallet.slice(0,8)}...{voteConfirmation.governmentWallet.slice(-8)}</div>)}
+                      {voteConfirmation.demoMode && (<div>Mode: simulated</div>)}
+                      {voteConfirmation.rateLimitInfo && (<div>Votes left: {voteConfirmation.rateLimitInfo.remainingVotes} (resets {new Date(voteConfirmation.rateLimitInfo.resetTime).toLocaleTimeString()})</div>)}
                     </div>
                   )}
                 </div>

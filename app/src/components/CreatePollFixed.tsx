@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import apiService, { CreatePollRequest, CreatePollResponse } from '../services/apiService';
 
 interface CreatePollFixedProps {
-  onSubmit: (pollData: { question: string; options: string[]; expiryDate?: number; isAnonymous?: boolean }) => Promise<void>;
+  onSubmit: (pollData: { question: string; options: string[]; expiryDate?: number; isAnonymous?: boolean; backendPollId?: string }) => Promise<void>;
   loading?: boolean;
   creatorPublicKey?: string;
   isDemoMode?: boolean;
@@ -103,7 +103,7 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading, cr
 
         if (response.success) {
           // Also call local onSubmit for UI state management
-          await onSubmit({ question: question.trim(), options: validOptions, expiryDate, isAnonymous });
+          await onSubmit({ question: question.trim(), options: validOptions, expiryDate, isAnonymous, backendPollId: response.pollId });
 
           setPollCreationResult(response);
         } else {
@@ -130,263 +130,189 @@ const CreatePollFixed: React.FC<CreatePollFixedProps> = ({ onSubmit, loading, cr
     }
   };
 
-  const addOption = () => {
+  const handleAddOption = () => {
     if (options.length < 10) {
       setOptions([...options, '']);
     }
   };
 
-  const removeOption = (index: number) => {
+  const handleRemoveOption = (index: number) => {
     if (options.length > 2) {
       setOptions(options.filter((_, i) => i !== index));
     }
   };
 
-  const updateOption = (index: number, value: string) => {
+  const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
     newOptions[index] = value;
     setOptions(newOptions);
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '520px', margin: '0 auto' }}>
+      {/* Section heading with bottom border */}
       <h2 style={{
-        fontSize: '2.5rem',
-        fontWeight: '800',
-        margin: '0 0 32px 0',
-        textAlign: 'center',
-        background: 'var(--button-gradient)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text'
+        fontSize: '1.35rem', fontWeight: 900, marginBottom: '22px', color: '#222', textAlign: 'left',
+        borderBottom: '1.5px solid #e5e5e5', paddingBottom:'11px', fontFamily: 'Inter, system-ui, sans-serif'
       }}>
         Create New Poll
       </h2>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {/* Question Input */}
-        <div>
-          <label style={{
-            display: 'block',
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'var(--text-main)',
-            marginBottom: '12px'
-          }}>
-            Poll Question *
-          </label>
-          <input
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder="What would you like to ask voters?"
-            className="input-field"
-            style={{ fontSize: '16px' }}
-            maxLength={200}
-          />
-          <div style={{
-            fontSize: '14px',
-            color: 'var(--text-muted)',
-            marginTop: '8px',
-            textAlign: 'right'
-          }}>
-            {question.length}/200 characters
-          </div>
+      {error && (
+        <div className="status-error" style={{ marginBottom: '20px' }}>
+          {error}
         </div>
+      )}
 
-        {/* Options */}
-        <div>
-          <label style={{
-            display: 'block',
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'var(--text-main)',
-            marginBottom: '12px'
-          }}>
-            Poll Options *
-          </label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {options.map((option, index) => (
-              <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  value={option}
-                  onChange={(e) => updateOption(index, e.target.value)}
-                  placeholder={`Option ${index + 1}`}
-                  className="input-field"
-                  style={{ flex: 1 }}
-                  maxLength={100}
-                />
-                {options.length > 2 && (
-                  <button
-                    onClick={() => removeOption(index)}
-                    className="btn-ghost"
-                    style={{
-                      padding: '12px',
-                      color: 'var(--accent-pink)',
-                      borderColor: 'var(--accent-pink)'
-                    }}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          {options.length < 10 && (
-            <button
-              onClick={addOption}
-              className="btn-secondary"
-              style={{ marginTop: '12px' }}
-            >
-              + Add Option
-            </button>
-          )}
-          <div style={{
-            fontSize: '14px',
-            color: 'var(--text-muted)',
-            marginTop: '8px'
-          }}>
-            {options.length}/10 options (minimum 2)
-          </div>
-        </div>
-
-        {/* Expiry Date */}
-        <div>
-          <label style={{
-            display: 'block',
-            fontSize: '18px',
-            fontWeight: '600',
-            color: 'var(--text-main)',
-            marginBottom: '12px'
-          }}>
-            Expiry Date (Optional)
-          </label>
-          <input
-            type="datetime-local"
-            value={expiryDateTime}
-            onChange={(e) => setExpiryDateTime(e.target.value)}
-            className="input-field"
-            style={{ fontSize: '16px' }}
-          />
-          <div style={{
-            fontSize: '14px',
-            color: 'var(--text-muted)',
-            marginTop: '8px'
-          }}>
-            Leave empty for no expiry
-          </div>
-        </div>
-
-        {/* Anonymous Toggle */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '16px',
-          background: 'var(--btn-bg)',
-          borderRadius: 'var(--radius)',
-          border: '1px solid var(--border-grey)'
-        }}>
-          <input
-            type="checkbox"
-            id="anonymous"
-            checked={isAnonymous}
-            onChange={(e) => setIsAnonymous(e.target.checked)}
-            style={{
-              width: '20px',
-              height: '20px',
-              accentColor: 'var(--accent-blue)'
-            }}
-          />
-          <label htmlFor="anonymous" style={{
-            fontSize: '16px',
-            fontWeight: '500',
-            color: 'var(--text-main)',
-            cursor: 'pointer'
-          }}>
-            Anonymous voting (hide voter addresses in results)
-          </label>
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="status-error">
-            {error}
-          </div>
-        )}
-
-        {/* Submit Button */}
-        <button
-          onClick={validateAndSubmit}
-          disabled={submitting || loading}
-          className="btn-primary"
+      {/* Question input - large/bold */}
+      <div style={{ marginBottom: '20px' }}>
+        <label htmlFor="question" className="input-label" style={{fontSize:'1.18rem',fontWeight:800,marginBottom:'8px'}}>Poll Question</label>
+        <input
+          id="question"
+          type="text"
+          className="input-field"
+          placeholder="e.g., What's your favorite Solana project?"
           style={{
-            fontSize: '18px',
-            padding: '20px 40px',
-            width: '100%',
-            opacity: submitting || loading ? 0.7 : 1,
-            cursor: submitting || loading ? 'not-allowed' : 'pointer'
+            fontSize: '1.13rem', fontWeight: 600,
+            padding: '16px', borderRadius: '5px', marginBottom:'8px', background: '#fff', border: '1px solid #d5d5d5', color: '#222', boxShadow:'none', fontFamily:'Inter,system-ui,sans-serif'
           }}
-        >
-          {submitting ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-              <div className="loading-dots">
-                <div className="loading-dot" />
-                <div className="loading-dot" />
-                <div className="loading-dot" />
-              </div>
-              Creating Poll...
-            </div>
-          ) : (
-            '🚀 Create Poll'
-          )}
-        </button>
-
-        {/* Poll Creation Confirmation */}
-        {pollCreationResult && (
-          <div style={{
-            padding: '24px',
-            background: pollCreationResult.success ? 'var(--accent-green)' : 'var(--accent-pink)',
-            color: 'white',
-            borderRadius: 'var(--radius)',
-            fontSize: '16px',
-            animation: pollCreationResult.success ? 'slideInFromTop 0.5s ease-out' : 'shake 0.5s ease-out'
-          }}>
-            <div style={{ marginBottom: '16px', fontWeight: '700', fontSize: '18px' }}>
-              {pollCreationResult.success ? '✅ Poll Created Successfully!' : '❌ Poll Creation Failed'}
-            </div>
-            
-            <div style={{ marginBottom: '12px' }}>
-              <strong>Message:</strong> {pollCreationResult.message}
-            </div>
-            
-            {pollCreationResult.pollId && (
-              <div style={{ marginBottom: '12px' }}>
-                <strong>Poll ID:</strong> {pollCreationResult.pollId}
-              </div>
-            )}
-            
-            {pollCreationResult.transactionSignature && (
-              <div style={{ marginBottom: '12px' }}>
-                <strong>Transaction:</strong> {pollCreationResult.transactionSignature.slice(0, 12)}...{pollCreationResult.transactionSignature.slice(-12)}
-              </div>
-            )}
-            
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px',
-              fontSize: '14px'
-            }}>
-              <span>{pollCreationResult.blockchainConfirmed ? '✅' : '⚠️'}</span>
-              <span>
-                {pollCreationResult.blockchainConfirmed ? 'Blockchain Confirmed' : 'Local Only (Demo Mode)'}
-              </span>
-            </div>
-          </div>
-        )}
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          maxLength={200}
+        />
       </div>
+
+      {/* Poll options as column, no backgrounds */}
+      <div style={{ marginBottom: '16px' }}>
+        <label className="input-label" style={{fontSize:'1rem',fontWeight:700}}>Poll Options</label>
+        {options.map((option, index) => (
+          <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <input
+              type="text"
+              className="input-field"
+              placeholder={`Option ${index + 1}`}
+              style={{ flexGrow: 1, marginRight: 0, marginBottom: '0', fontSize:'1rem', borderRadius:'5px', padding:'14px', background: '#fff', border:'1px solid #d5d5d5', color:'#222', boxShadow:'none' }}
+              value={option}
+              onChange={(e) => handleOptionChange(index, e.target.value)}
+              maxLength={100}
+            />
+            {options.length > 2 && (
+              <button
+                onClick={() => handleRemoveOption(index)}
+                type="button"
+                className="btn-secondary"
+                style={{ minWidth: 38, padding: '8px 12px', fontSize: '12px', border:'1px solid #1976d2', color:'#1976d2', background:'#fff', borderRadius:'6px', fontWeight: 700, marginLeft: '2px' }}
+              >Remove</button>
+            )}
+          </div>
+        ))}
+        {options.length < 10 && (
+          <button 
+            onClick={handleAddOption} 
+            type="button"
+            className="btn-secondary" 
+            style={{ width: 'auto', padding: '10px 16px', fontSize: '14px', marginTop: '3px', border:'1px solid #1976d2', color:'#1976d2', background:'#fff', borderRadius:'6px', fontWeight:700 }}
+          >+ Add Option</button>)
+        }
+      </div>
+
+      {/* Date/time picker */}
+      <div style={{ marginBottom: '20px' }}>
+        <label htmlFor="expiryDateTime" className="input-label" style={{fontWeight:700}}>Expiry Date & Time (Optional)</label>
+        <input
+          id="expiryDateTime"
+          type="datetime-local"
+          className="input-field"
+          style={{ borderRadius: '5px', padding:'12px', fontSize:'1rem', background:'#fff', color:'#222', border:'1px solid #d5d5d5', maxWidth:320 }}
+          value={expiryDateTime}
+          onChange={e => setExpiryDateTime(e.target.value)}
+          min={new Date().toISOString().slice(0, 16)}
+        />
+      </div>
+
+      {/* Checkbox for Anonymous Poll */}
+      <div style={{ marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <input
+          type="checkbox"
+          id="isAnonymous"
+          checked={isAnonymous}
+          onChange={(e) => setIsAnonymous(e.target.checked)}
+          style={{ width: '19px', height: '19px', accentColor: '#1976d2', borderRadius:'4px' }}
+        />
+        <label htmlFor="isAnonymous" style={{ color: '#222', fontSize: '1rem', fontWeight: '500', marginLeft:'1px' }}>
+          Anonymous Poll
+        </label>
+      </div>
+
+      {/* Submit Button */}
+      <button
+        onClick={() => {
+          setSubmitting(true);
+          setTimeout(() => setSubmitting(false), 550);
+          validateAndSubmit();
+        }}
+        disabled={submitting || loading}
+        style={{ 
+          width: '100%', marginTop: '18px', borderRadius:6, background:'#1976d2', border:'none', color:'#fff', fontWeight:700, fontSize:'1.08rem', padding:'16px 0', boxShadow:'none', cursor:'pointer', transition:'background .17s', fontFamily:'Inter,system-ui,sans-serif'
+        }}
+      >
+        {submitting ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+            <div className="loading-dots">
+              <div className="loading-dot" />
+              <div className="loading-dot" />
+              <div className="loading-dot" />
+            </div>
+            Creating Poll...
+          </div>
+        ) : (
+          '🚀 Create Poll'
+        )}
+      </button>
+
+      {/* Poll Creation Confirmation */}
+      {pollCreationResult && (
+        <div style={{
+          padding: '24px',
+          background: pollCreationResult.success ? 'var(--accent-green)' : 'var(--accent-pink)',
+          color: 'white',
+          borderRadius: 'var(--radius)',
+          fontSize: '16px',
+          animation: pollCreationResult.success ? 'slideInFromTop 0.5s ease-out' : 'shake 0.5s ease-out'
+        }}>
+          <div style={{ marginBottom: '16px', fontWeight: '700', fontSize: '18px' }}>
+            {pollCreationResult.success ? '✅ Poll Created Successfully!' : '❌ Poll Creation Failed'}
+          </div>
+          
+          <div style={{ marginBottom: '12px' }}>
+            <strong>Message:</strong> {pollCreationResult.message}
+          </div>
+          
+          {pollCreationResult.pollId && (
+            <div style={{ marginBottom: '12px' }}>
+              <strong>Poll ID:</strong> {pollCreationResult.pollId}
+            </div>
+          )}
+          
+          {pollCreationResult.transactionSignature && (
+            <div style={{ marginBottom: '12px' }}>
+              <strong>Transaction:</strong> {pollCreationResult.transactionSignature.slice(0, 12)}...{pollCreationResult.transactionSignature.slice(-12)}
+            </div>
+          )}
+          
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px',
+            fontSize: '14px'
+          }}>
+            <span>{pollCreationResult.blockchainConfirmed ? '✅' : '⚠️'}</span>
+            <span>
+              {pollCreationResult.blockchainConfirmed ? 'Blockchain Confirmed' : 'Local Only (Demo Mode)'}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
