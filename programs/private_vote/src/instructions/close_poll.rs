@@ -7,6 +7,7 @@ pub struct ClosePoll<'info> {
     /// The poll to be closed (must be active and owned by creator)
     #[account(
         mut,
+        owner = crate::ID @ ErrorCode::InvalidAccountOwner,
         constraint = poll.creator == creator.key() @ ErrorCode::UnauthorizedCreator,
         constraint = poll.is_active @ ErrorCode::PollAlreadyClosed
     )]

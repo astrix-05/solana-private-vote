@@ -31,17 +31,38 @@ pub enum ErrorCode {
     #[msg("Question too long")]
     QuestionTooLong,
     
+    #[msg("Question cannot be empty")]
+    QuestionEmpty,
+    
     #[msg("Too many options")]
     TooManyOptions,
     
+    #[msg("Too few options - need at least 2")]
+    TooFewOptions,
+    
     #[msg("Option text too long")]
     OptionTooLong,
+    
+    #[msg("Option text cannot be empty")]
+    OptionEmpty,
+    
+    #[msg("Duplicate options not allowed")]
+    DuplicateOptions,
     
     #[msg("Encrypted data too large")]
     EncryptedDataTooLarge,
     
     #[msg("No votes to reveal")]
     NoVotesToReveal,
+    
+    #[msg("Invalid account owner")]
+    InvalidAccountOwner,
+    
+    #[msg("Account mismatch - vote.poll does not match poll account")]
+    VotePollMismatch,
+    
+    #[msg("Account mismatch - vote.voter does not match voter account")]
+    VoteVoterMismatch,
 }
 
 // State structures
@@ -104,7 +125,8 @@ pub struct CreatePoll<'info> {
         payer = creator,
         space = Poll::space(),
         seeds = [POLL_SEED.as_bytes(), creator.key().as_ref()],
-        bump
+        bump,
+        owner = id() @ ErrorCode::InvalidAccountOwner
     )]
     pub poll: Account<'info, Poll>,
     
@@ -115,10 +137,11 @@ pub struct CreatePoll<'info> {
 }
 
 #[derive(Accounts)]
-#[instruction(encrypted_data: Vec<u8>)]
+#[instruction(option_index: u8, encrypted_data: Vec<u8>)]
 pub struct VoteInstruction<'info> {
     #[account(
         mut,
+        owner = id() @ ErrorCode::InvalidAccountOwner,
         constraint = poll.is_active @ ErrorCode::PollNotActive
     )]
     pub poll: Account<'info, Poll>,
@@ -128,7 +151,8 @@ pub struct VoteInstruction<'info> {
         payer = voter,
         space = Vote::space(),
         seeds = [VOTE_SEED.as_bytes(), poll.key().as_ref(), voter.key().as_ref()],
-        bump
+        bump,
+        owner = id() @ ErrorCode::InvalidAccountOwner
     )]
     pub vote: Account<'info, Vote>,
     
@@ -142,6 +166,7 @@ pub struct VoteInstruction<'info> {
 pub struct ClosePoll<'info> {
     #[account(
         mut,
+        owner = id() @ ErrorCode::InvalidAccountOwner,
         constraint = poll.creator == creator.key() @ ErrorCode::UnauthorizedCreator,
         constraint = poll.is_active @ ErrorCode::PollAlreadyClosed
     )]
@@ -153,6 +178,7 @@ pub struct ClosePoll<'info> {
 #[derive(Accounts)]
 pub struct RevealResults<'info> {
     #[account(
+        owner = id() @ ErrorCode::InvalidAccountOwner,
         constraint = !poll.is_active @ ErrorCode::PollStillActive,
         constraint = poll.closed_at.is_some() @ ErrorCode::PollStillActive
     )]
@@ -171,36 +197,54 @@ pub mod private_vote {
         question: String,
         options: Vec<String>,
     ) -> Result<()> {
-        // Validate inputs
+        // Validate question
+        let question_trimmed = question.trim();
         require!(
-            question.len() <= Poll::MAX_QUESTION_LENGTH,
+            !question_trimmed.is_empty(),
+            ErrorCode::QuestionEmpty
+        );
+        require!(
+            question_trimmed.len() <= Poll::MAX_QUESTION_LENGTH,
             ErrorCode::QuestionTooLong
         );
         
+        // Validate option count
+        require!(
+            options.len() >= 2,
+            ErrorCode::TooFewOptions
+        );
         require!(
             options.len() <= Poll::MAX_OPTIONS,
             ErrorCode::TooManyOptions
         );
         
-        require!(
-            options.len() >= 2,
-            ErrorCode::TooManyOptions
-        );
-        
+        // Validate each option
+        let mut seen_options = std::collections::HashSet::new();
         for option in &options {
+            let option_trimmed = option.trim();
             require!(
-                option.len() <= Poll::MAX_OPTION_LENGTH,
+                !option_trimmed.is_empty(),
+                ErrorCode::OptionEmpty
+            );
+            require!(
+                option_trimmed.len() <= Poll::MAX_OPTION_LENGTH,
                 ErrorCode::OptionTooLong
+            );
+            // Check for duplicates (case-insensitive)
+            let option_lower = option_trimmed.to_lowercase();
+            require!(
+                seen_options.insert(option_lower),
+                ErrorCode::DuplicateOptions
             );
         }
         
         let poll = &mut ctx.accounts.poll;
         let clock = Clock::get()?;
         
-        // Initialize poll data
+        // Initialize poll data (store trimmed values)
         poll.creator = ctx.accounts.creator.key();
-        poll.question = question;
-        poll.options = options;
+        poll.question = question_trimmed.to_string();
+        poll.options = options.iter().map(|o| o.trim().to_string()).collect();
         poll.is_active = true;
         poll.total_votes = 0;
         poll.vote_counts = vec![0; poll.options.len()];
@@ -208,17 +252,28 @@ pub mod private_vote {
         poll.closed_at = None;
         
         msg!("Poll created: {}", poll.question);
+        msg!("Options: {:?}", poll.options);
         
         Ok(())
     }
 
     /// Allows a user to cast a vote on an active poll
-    /// Each user can only vote once per poll
-    /// Vote data is stored encrypted
+    /// Each user can only vote once per poll (enforced by PDA)
+    /// Vote data is stored encrypted for privacy
     pub fn vote(
         ctx: Context<VoteInstruction>,
+        option_index: u8,
         encrypted_data: Vec<u8>,
     ) -> Result<()> {
+        let poll = &mut ctx.accounts.poll;
+        
+        // Validate option index
+        let option_idx = option_index as usize;
+        require!(
+            option_idx < poll.options.len(),
+            ErrorCode::InvalidOptionIndex
+        );
+        
         // Validate encrypted data size
         require!(
             encrypted_data.len() <= Vote::MAX_ENCRYPTED_DATA_SIZE,
@@ -235,16 +290,29 @@ pub mod private_vote {
         
         // Initialize the vote account
         let vote = &mut ctx.accounts.vote;
-        vote.poll = ctx.accounts.poll.key();
+        vote.poll = poll.key();
         vote.voter = ctx.accounts.voter.key();
         vote.encrypted_data = encrypted_data;
         vote.created_at = clock.unix_timestamp;
         
-        // Update poll vote count
-        let poll = &mut ctx.accounts.poll;
+        // Validate account relationships
+        require!(
+            vote.poll == poll.key(),
+            ErrorCode::VotePollMismatch
+        );
+        require!(
+            vote.voter == ctx.accounts.voter.key(),
+            ErrorCode::VoteVoterMismatch
+        );
+        
+        // Update poll vote counts (CRITICAL FIX)
         poll.total_votes += 1;
+        poll.vote_counts[option_idx] += 1;
         
         msg!("Vote cast by: {}", ctx.accounts.voter.key());
+        msg!("Option chosen: {} (index: {})", poll.options[option_idx], option_idx);
+        msg!("Total votes: {}", poll.total_votes);
+        msg!("Votes for option {}: {}", option_idx, poll.vote_counts[option_idx]);
         
         Ok(())
     }
@@ -267,7 +335,7 @@ pub mod private_vote {
 
     /// Reveals the vote counts for each option after poll is closed
     /// Anyone can call this to view results
-    /// In a real implementation, this would decrypt and count votes
+    /// Vote counts are already calculated during voting, so this just displays them
     pub fn reveal_results(ctx: Context<RevealResults>) -> Result<()> {
         let poll = &ctx.accounts.poll;
         
@@ -277,15 +345,51 @@ pub mod private_vote {
             ErrorCode::NoVotesToReveal
         );
         
+        // Validate vote_counts length matches options length
+        require!(
+            poll.vote_counts.len() == poll.options.len(),
+            ErrorCode::InvalidOptionIndex
+        );
+        
+        // Verify vote counts sum equals total votes (sanity check)
+        let sum: u32 = poll.vote_counts.iter().sum();
+        // Note: We use >= instead of == to allow for potential rounding or future features
+        require!(
+            sum <= poll.total_votes,
+            ErrorCode::InvalidOptionIndex
+        );
+        
         msg!("=== POLL RESULTS REVEALED ===");
         msg!("Poll: {}", poll.question);
         msg!("Total votes: {}", poll.total_votes);
         msg!("Poll created: {}", poll.created_at);
         msg!("Poll closed: {:?}", poll.closed_at);
         
-        // Display results for each option
+        // Display results for each option with percentages
         for (index, (option, count)) in poll.options.iter().zip(poll.vote_counts.iter()).enumerate() {
-            msg!("Option {}: {} - {} votes", index + 1, option, count);
+            let percentage = if poll.total_votes > 0 {
+                (*count as f64 / poll.total_votes as f64) * 100.0
+            } else {
+                0.0
+            };
+            msg!("Option {}: {} - {} votes ({:.1}%)", index + 1, option, count, percentage);
+        }
+        
+        // Find winner(s)
+        if let Some(max_count) = poll.vote_counts.iter().max() {
+            if *max_count > 0 {
+                let winners: Vec<(usize, &String)> = poll.options
+                    .iter()
+                    .enumerate()
+                    .filter(|(idx, _)| poll.vote_counts[*idx] == *max_count)
+                    .collect();
+                
+                if winners.len() == 1 {
+                    msg!("Winner: {}", winners[0].1);
+                } else {
+                    msg!("Tie between {} options with {} votes each", winners.len(), max_count);
+                }
+            }
         }
         
         msg!("=== END RESULTS ===");

@@ -11,7 +11,8 @@ pub struct CreatePoll<'info> {
         payer = creator,
         space = Poll::space(),
         seeds = [POLL_SEED.as_bytes(), creator.key().as_ref()],
-        bump
+        bump,
+        owner = crate::ID @ ErrorCode::InvalidAccountOwner
     )]
     pub poll: Account<'info, Poll>,
     
@@ -29,40 +30,55 @@ pub fn handler(
     question: String,
     options: Vec<String>,
 ) -> Result<()> {
-    // Validate question length
+    // Validate question
+    let question_trimmed = question.trim();
     require!(
-        question.len() <= Poll::MAX_QUESTION_LENGTH,
+        !question_trimmed.is_empty(),
+        ErrorCode::QuestionEmpty
+    );
+    require!(
+        question_trimmed.len() <= Poll::MAX_QUESTION_LENGTH,
         ErrorCode::QuestionTooLong
     );
     
-    // Validate number of options
+    // Validate option count
+    require!(
+        options.len() >= 2,
+        ErrorCode::TooFewOptions
+    );
     require!(
         options.len() <= Poll::MAX_OPTIONS,
         ErrorCode::TooManyOptions
     );
     
-    // Require at least 2 options for a valid poll
-    require!(
-        options.len() >= 2,
-        ErrorCode::TooManyOptions
-    );
-    
-    // Validate each option length
+    // Validate each option
+    let mut seen_options = std::collections::HashSet::new();
     for option in &options {
+        let option_trimmed = option.trim();
         require!(
-            option.len() <= Poll::MAX_OPTION_LENGTH,
+            !option_trimmed.is_empty(),
+            ErrorCode::OptionEmpty
+        );
+        require!(
+            option_trimmed.len() <= Poll::MAX_OPTION_LENGTH,
             ErrorCode::OptionTooLong
+        );
+        // Check for duplicates (case-insensitive)
+        let option_lower = option_trimmed.to_lowercase();
+        require!(
+            seen_options.insert(option_lower),
+            ErrorCode::DuplicateOptions
         );
     }
     
     // Get current timestamp
     let clock = Clock::get()?;
     
-    // Initialize the poll account
+    // Initialize the poll account (store trimmed values)
     let poll = &mut ctx.accounts.poll;
     poll.creator = ctx.accounts.creator.key();
-    poll.question = question;
-    poll.options = options;
+    poll.question = question_trimmed.to_string();
+    poll.options = options.iter().map(|o| o.trim().to_string()).collect();
     poll.is_active = true;
     poll.total_votes = 0;
     poll.vote_counts = vec![0; poll.options.len()];

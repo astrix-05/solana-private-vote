@@ -3,7 +3,10 @@ import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
 import { WalletContextType } from '../types';
 
 // Program ID from the smart contract
-const PROGRAM_ID = new PublicKey('7ZXBjyqFJPNHj3nRdeJmu2JKSnph5BpJ9nwxTTMx7RwJ');
+// Can be overridden via REACT_APP_PROGRAM_ID environment variable
+const PROGRAM_ID = new PublicKey(
+  process.env.REACT_APP_PROGRAM_ID || '7ZXBjyqFJPNHj3nRdeJmu2JKSnph5BpJ9nwxTTMx7RwJ'
+);
 
 export interface ProgramService {
   createPoll: (question: string, options: string[]) => Promise<string>;

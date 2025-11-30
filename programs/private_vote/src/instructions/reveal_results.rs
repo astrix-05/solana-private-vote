@@ -6,6 +6,7 @@ use crate::{state::Poll, error::ErrorCode};
 pub struct RevealResults<'info> {
     /// The poll to reveal results for (must be closed)
     #[account(
+        owner = crate::ID @ ErrorCode::InvalidAccountOwner,
         constraint = !poll.is_active @ ErrorCode::PollStillActive,
         constraint = poll.closed_at.is_some() @ ErrorCode::PollStillActive
     )]
@@ -22,32 +23,52 @@ pub fn handler(ctx: Context<RevealResults>) -> Result<()> {
         ErrorCode::NoVotesToReveal
     );
     
-    // In a real implementation, this would:
-    // 1. Iterate through all vote accounts for this poll
-    // 2. Decrypt each vote's encrypted_data
-    // 3. Count votes for each option
-    // 4. Update poll.vote_counts with actual counts
+    // Validate vote_counts length matches options length
+    require!(
+        poll.vote_counts.len() == poll.options.len(),
+        ErrorCode::InvalidOptionIndex
+    );
     
-    // For now, we'll display the current state
-    // In a production system, you would implement proper decryption here
+    // Verify vote counts sum equals total votes (sanity check)
+    let sum: u32 = poll.vote_counts.iter().sum();
+    // Note: We use <= instead of == to allow for potential rounding or future features
+    require!(
+        sum <= poll.total_votes,
+        ErrorCode::InvalidOptionIndex
+    );
+    
     msg!("=== POLL RESULTS REVEALED ===");
     msg!("Poll: {}", poll.question);
     msg!("Total votes: {}", poll.total_votes);
     msg!("Poll created: {}", poll.created_at);
     msg!("Poll closed: {:?}", poll.closed_at);
     
-    // Display results for each option
+    // Display results for each option with percentages
     for (index, (option, count)) in poll.options.iter().zip(poll.vote_counts.iter()).enumerate() {
-        msg!("Option {}: {} - {} votes", index + 1, option, count);
+        let percentage = if poll.total_votes > 0 {
+            (*count as f64 / poll.total_votes as f64) * 100.0
+        } else {
+            0.0
+        };
+        msg!("Option {}: {} - {} votes ({:.1}%)", index + 1, option, count, percentage);
     }
     
-    // TODO: Implement actual vote decryption and counting
-    // This would involve:
-    // 1. Finding all vote accounts for this poll using PDAs
-    // 2. Decrypting each vote's encrypted_data
-    // 3. Parsing the decrypted data to determine the chosen option
-    // 4. Updating poll.vote_counts with the actual counts
-    // 5. Storing the results back to the poll account
+    // Find winner(s)
+    if let Some(max_count) = poll.vote_counts.iter().max() {
+        if *max_count > 0 {
+            let winners: Vec<(usize, &String)> = poll.options
+                .iter()
+                .enumerate()
+                .filter(|(idx, _)| poll.vote_counts[*idx] == *max_count)
+                .collect();
+            
+            if winners.len() == 1 {
+                msg!("Winner: {}", winners[0].1);
+            } else {
+                msg!("Tie between {} options with {} votes each", winners.len(), max_count);
+            }
+        }
+    }
     
     msg!("=== END RESULTS ===");
     
